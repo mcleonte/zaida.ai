@@ -33,7 +33,7 @@ class TTS:
 
 
 def main():
-  TTS().say("Zayda")
+  TTS().say("Hello World")
 
 
 if __name__ == "__main__":
