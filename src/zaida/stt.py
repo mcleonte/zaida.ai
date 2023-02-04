@@ -47,9 +47,6 @@ class STT:
   def get_input_devices(self):
     print(sd.query_devices())
 
-  def standby(self):
-    self.recognizer.SetWords("zaida")
-
   def listen(self):
     q = queue.Queue()
 
