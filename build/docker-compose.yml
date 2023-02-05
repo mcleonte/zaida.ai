@@ -11,7 +11,7 @@ services:
       - run
 
   rasa_actions:
-    image: rasa/rasa-sdk
+    image: mcleonte/rasa-actions
     expose:
       - 5055
     volumes:
