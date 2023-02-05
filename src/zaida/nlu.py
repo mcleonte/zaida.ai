@@ -7,6 +7,9 @@ import json
 
 
 class NLU:
+  """
+  Interface class for communicatind with Rasa server container.
+  """
 
   def __init__(
       self,
