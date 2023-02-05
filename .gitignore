@@ -1,9 +1,9 @@
 .env
 .venv
+.*/
 __pycache__
 poetry.lock
 res/stt_vosk_model/
 res/tortoise-tts-*.tar.gz
-.rasa/
 credentials.yml
 models/
