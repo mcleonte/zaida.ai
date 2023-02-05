@@ -2,6 +2,7 @@ version: "3.0"
 services:
   rasa_server:
     image: rasa/rasa:3.4.2-full
+    user: 1000:1000
     ports:
       - 5005:5005
     volumes:
