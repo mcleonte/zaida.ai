@@ -32,5 +32,5 @@ stories:
     steps:
       - intent: greet
       - action: utter_greet
-      - intent: give_time
-      - action: action_show_time
+      - intent: ask_time
+      - action: tell_time

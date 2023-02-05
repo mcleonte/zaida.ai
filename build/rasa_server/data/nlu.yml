@@ -90,10 +90,24 @@ nlu:
       - am I talking to a bot?
       - am I talking to a human?
 
-  - intent: give_time
+  - intent: ask_time
     examples: |
       - can you tell me what time is it
       - what time is it
       - what's the time
       - tell me the time
       - got the time
+      - what time is it in [Amsterdam](place)
+      - what time is it in [London](place)
+      - what is the current time in [Berlin](place)
+      - what's the current time
+  - lookup: place
+    examples: |
+      - brussels
+      - zagreb
+      - london
+      - lisbon
+      - amsterdam
+      - seattle
+      - tokyo
+      - new york
