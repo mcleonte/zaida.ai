@@ -1,5 +1,5 @@
 """
-Text to Speech implementation for Zaida AI
+Text-to-Speech module with Festival CLI tool
 """
 
 import sounddevice as sd

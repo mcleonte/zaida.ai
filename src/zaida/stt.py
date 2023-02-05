@@ -1,5 +1,5 @@
 """
-Zaida AI module for Speech to text support
+Speech-to-Text module with Vosk
 """
 
 import queue

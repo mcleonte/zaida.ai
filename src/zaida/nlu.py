@@ -1,6 +1,8 @@
+"""
+Natural Languange Understanding module with Rasa
+"""
+
 import requests
-import subprocess
-import pathlib
 import json
 
 
