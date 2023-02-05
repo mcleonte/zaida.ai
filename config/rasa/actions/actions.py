@@ -11,10 +11,6 @@ import time
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 
-from zaida.tts import TTS
-
-tts = TTS()
-
 
 class ActionShowTime(Action):
   """Action for showing time"""
@@ -29,7 +25,7 @@ class ActionShowTime(Action):
       domain: Dict[Text, Any],
   ) -> List[Dict[Text, Any]]:
 
-    dispatcher.utter_message(text=f"{dt.datetime.now()}")
-    tts.say(f"It's {time.strftime('%H:%M', time.localtime())}")
+    dispatcher.utter_message(
+        text=f"It's {time.strftime('%H:%M', time.localtime())}")
 
     return []
