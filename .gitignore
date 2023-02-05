@@ -3,5 +3,6 @@
 __pycache__
 poetry.lock
 res/stt_vosk_model/
-nlu/
-tortoise-tts-*.tar.gz
+res/tortoise-tts-*.tar.gz
+.rasa/
+credentials.yml
