@@ -10,6 +10,8 @@
 # Server which runs your custom actions.
 # https://rasa.com/docs/rasa/custom-actions
 
+# if using docker compose, hostname must be the same as
+# the service name defined in docker-compose.yml
 action_endpoint:
   url: "http://rasa_actions:5055/webhook"
 # Tracker store which is used to store the conversations.
