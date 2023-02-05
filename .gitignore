@@ -6,3 +6,4 @@ res/stt_vosk_model/
 res/tortoise-tts-*.tar.gz
 .rasa/
 credentials.yml
+rasa/models/
