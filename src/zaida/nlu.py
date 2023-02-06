@@ -37,7 +37,7 @@ class NLU:
 
 def main():
   nlu = NLU()
-  print(nlu.interpret("what time is it"))
+  print(nlu.interpret("What time is it in Amsterdam?"))
 
 
 if __name__ == "__main__":
