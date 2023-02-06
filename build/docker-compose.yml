@@ -1,18 +1,25 @@
 version: "3.0"
 services:
-  rasa_server:
-    image: rasa/rasa:3.4.2-full
+  rasa:
+    # image: rasa/rasa:3.4.2-full
+    build: ./docker/rasa
+    image: mcleonte/zaida-rasa
+    container_name: zaida-rasa
     user: 1000:1000
     ports:
       - 5005:5005
     volumes:
-      - ./rasa_server:/app
+      - ./docker/rasa:/app
     command:
       - run
 
-  rasa_actions:
-    image: mcleonte/rasa-actions
+  actions:
+    # image: mcleonte/rasa-actions
+    build: ./docker/actions
+    image: mcleonte/zaida-actions
+    container_name: zaida-actions
     expose:
       - 5055
     volumes:
-      - ./rasa_actions:/app/actions
+      - ./docker/actions:/app/actions
+      - /etc/localtime:/etc/localtime
