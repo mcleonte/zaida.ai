@@ -47,4 +47,3 @@ class ActionTellTime(Action):
 
     dispatcher.utter_message(msg)
     return []
-    # msg = f"It's {time.strftime('%H:%M', time.localtime())} local time"
