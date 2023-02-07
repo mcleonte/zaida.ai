@@ -12,6 +12,8 @@ services:
       - ./docker/rasa:/app
     command:
       - run
+    environment:
+      - SQLALCHEMY_SILENCE_UBER_WARNING=1
 
   actions:
     # image: mcleonte/rasa-actions
