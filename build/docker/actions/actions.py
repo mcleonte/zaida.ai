@@ -36,7 +36,7 @@ class ActionTellTime(Action):
       domain: Dict[Text, Any],
   ) -> List[Dict[Text, Any]]:
 
-    place = next(tracker.get_latest_entity_values("place"), None)
+    place = next(tracker.get_latest_entity_values("GPE"), None)
 
     if place is None:
       msg = f"It's {arrow.now().format('HH:mm')}."
