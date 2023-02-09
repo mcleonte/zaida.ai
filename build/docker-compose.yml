@@ -25,3 +25,11 @@ services:
     volumes:
       - ./docker/actions:/app/actions
       - /etc/localtime:/etc/localtime
+
+  stt:
+    image: alphacep/kaldi-en:latest
+    container_name: zaida-stt
+    ports:
+      - 2700:2700
+    volumes:
+      - ./docker/stt/model:/opt/vosk-model-en/model
