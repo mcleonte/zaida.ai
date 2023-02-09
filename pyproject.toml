@@ -10,13 +10,12 @@ repository = "https://github.com/mcleonte/zaida.ai"
 
 [tool.poetry.dependencies]
 python = "^3.8,<3.11"
-vosk = "^0.3.45"
 sounddevice = "^0.4.5"
-webrtcvad = "^2.0.10"
 openai = "^0.26.4"
 torch = "^1.13.1"
 torchvision = "^0.14.1"
 torchaudio = "^0.13.1"
+websockets = "^10.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
