@@ -1,29 +1,27 @@
 version: "3.0"
 services:
-  rasa:
-    # image: rasa/rasa:3.4.2-full
-    build: ./docker/rasa
-    image: mcleonte/zaida-rasa
-    container_name: zaida-rasa
+  nlu:
+    build: ./docker/nlu
+    image: mcleonte/zaida-nlu
+    container_name: zaida-nlu
     user: 1000:1000
     ports:
       - 5005:5005
     volumes:
-      - ./docker/rasa:/app
+      - ./docker/nlu:/app
     command:
       - run
     environment:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
 
-  actions:
-    # image: mcleonte/rasa-actions
-    build: ./docker/actions
-    image: mcleonte/zaida-actions
-    container_name: zaida-actions
+  nlu-actions:
+    build: ./docker/nlu-actions
+    image: mcleonte/zaida-nlu-actions
+    container_name: zaida-nlu-actions
     expose:
       - 5055
     volumes:
-      - ./docker/actions:/app/actions
+      - ./docker/nlu-actions:/app/actions
       - /etc/localtime:/etc/localtime
 
   stt:

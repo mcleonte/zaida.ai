@@ -13,7 +13,7 @@
 # if using docker compose, hostname must be the same as
 # the service name defined in docker-compose.yml
 action_endpoint:
-  url: "http://actions:5055/webhook"
+  url: "http://nlu-actions:5055/webhook"
 # Tracker store which is used to store the conversations.
 # By default the conversations are stored in memory.
 # https://rasa.com/docs/rasa/tracker-stores
