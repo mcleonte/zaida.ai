@@ -9,12 +9,15 @@ intents:
   - mood_unhappy
   - bot_challenge
   - ask_time
+  - ask_country_info
 
 entities:
-  - place
+  - GPE
+  - country_info
 
 actions:
   - tell_time
+  - tell_country_info
 
 responses:
   utter_greet:
