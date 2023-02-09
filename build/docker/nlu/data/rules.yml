@@ -15,3 +15,8 @@ rules:
     steps:
       - intent: ask_time
       - action: tell_time
+
+  - rule: Tell info about country
+    steps:
+      - intent: ask_country_info
+      - action: tell_country_info

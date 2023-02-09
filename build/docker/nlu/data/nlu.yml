@@ -98,3 +98,12 @@ nlu:
       - tell me the time
       - got the time
       - what's the current time
+
+  - intent: ask_country_info
+    examples: |
+      - what is the [capital](country_info) of France?
+      - what [area](country_info) does Germany have?
+      - what [currencies](country_info) are used in Spain?
+      - what are the [borders](country_info) of Switzerland?
+      - what's Romania's [population](country_info)?
+      - what are Russia's [timezones](country_info)?
