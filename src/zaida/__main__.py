@@ -19,7 +19,6 @@ class Zaida:
     async for text, is_partial in self.stt.listen():
       if is_partial:
         print(f"partial: {text}\r", end="")
-        continue
       elif text:
         print("\n", text, sep="")
         resp = self.nlu.interpret(text)
