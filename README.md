@@ -11,4 +11,5 @@
 
 ## Available features
 - live Speech-To-Speech interaction
-- ask for the current time in any country / city / state supported by SpaCy
+- ask for the current time in any country / city / state supported by SpaCy, or
+  just the local time if no location is specified
