@@ -31,3 +31,12 @@ services:
       - 2700:2700
     volumes:
       - ./docker/stt/model:/opt/vosk-model-en/model
+
+  tts:
+    build: ./docker/tts
+    image: mcleonte/zaida-tts
+    container_name: zaida-tts
+    ports:
+      - 59125:59125
+    volumes:
+      - ./docker/tts/:/home/mimic3/.local/share/mycroft/mimic3
