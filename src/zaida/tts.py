@@ -1,40 +1,56 @@
 """
-Text-to-Speech module with Festival CLI tool
+Text-to-Speech module based on Mimic3.
 """
 
-import sounddevice as sd
 import subprocess
 
 
-class TTS:
+class TTSserver:
+  """
+  Interface class for communicating with Mimic3 server.
+  """
 
-  def __init__(self):
-    self.set_output_device(10)
+  def __init__(
+      self,
+      uri=None,
+      protocol="http",
+      hostname="localhost",
+      port=59125,
+      endpoint="/api/tts",
+      voice=None,  #"en_US/vctk_low",
+      speaker=None,  #"p329",
+  ):
 
-  def set_output_device(self, index=None):
-    if index is None:
-      index = int(input(f"Type index of output device:\n{sd.query_devices()}"))
-    self.output_device_index = index
+    if uri is None:
+      uri = f"{protocol}://{hostname}:{port}{endpoint}"
+    if voice and speaker:
+      uri += f"?voice={voice}&speaker={speaker}"
+    self.uri = uri
+    self.args = [
+        "curl", "-s", "-X", "POST", "--data", None, "--output", "-", self.uri
+    ]
 
   def say(self, text: str):
-    p1 = subprocess.Popen(["echo", f'"{text}"'], stdout=subprocess.PIPE)
-    self.proc = subprocess.run(["festival", "--tts"], stdin=p1.stdout)
+    self.args[5] = text
+    p1 = subprocess.Popen(self.args, stdout=subprocess.PIPE)
+    self.proc = subprocess.run(["aplay", "-q"], stdin=p1.stdout)
 
   def is_talking(self):
     return self.proc and self.proc.poll() is None
 
   def wait(self):
-    if self.proc:
-      self.proc.wait()
+    while self.proc:
+      pass
 
   def quiet(self):
     if self.proc:
       self.proc.terminate()
 
 
-def main():
-  TTS().say("Hello World")
+def main(text="Hello World"):
+  TTSserver().say(text)
 
 
 if __name__ == "__main__":
-  main()
+  import sys
+  main(sys.argv[-1])
