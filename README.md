@@ -2,12 +2,9 @@
 
 ## Integrations
 
-- Natural Language Understanding with dockerized [Rasa Open
-  Source](https://github.com/RasaHQ/rasa) using
-  [SpaCy](https://spacy.io/models/en#en_core_web_lg) model
-- offline Text-to-Speech with [Festival](http://festvox.org/festival/)
-- offline Speech-to-Text with [Vosk](https://github.com/alphacep/vosk-api) and
-  [Kaldi](https://github.com/kaldi-asr/kaldi)
+- offline Natural Language Understanding with dockerized [Rasa Open Source](https://github.com/RasaHQ/rasa) and [SpaCy](https://spacy.io/models/en#en_core_web_lg) model
+- offline Text-to-Speech with dockerized [Mimic3](https://github.com/MycroftAI/mimic3) server
+- offline Speech-to-Text with dockerized [Vosk](https://github.com/alphacep/vosk-api) server
 
 ## Available features
 - live Speech-To-Speech interaction
