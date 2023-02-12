@@ -33,13 +33,17 @@ class TTSserver:
 
     if sys.platform == "linux":
       self.play_args = ["aplay", "-q"]
+    elif sys.platform == "darwin":
+      self.play_args = ["afplay"]
+    elif sys.platform == "win32":
+      self.play_args = ["play", "-q"]
     else:
       raise NotImplementedError
 
   def say(self, text: str):
     self.args[5] = text
     p1 = subprocess.Popen(self.args, stdout=subprocess.PIPE)
-    self.proc = subprocess.run(["aplay", "-q"], stdin=p1.stdout)
+    self.proc = subprocess.run(self.play_args, stdin=p1.stdout)
 
   def is_talking(self):
     return self.proc and self.proc.poll() is None
