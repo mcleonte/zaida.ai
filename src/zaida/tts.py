@@ -3,6 +3,7 @@ Text-to-Speech module based on Mimic3.
 """
 
 import subprocess
+import sys
 
 
 class TTSserver:
@@ -29,6 +30,11 @@ class TTSserver:
     self.args = [
         "curl", "-s", "-X", "POST", "--data", None, "--output", "-", self.uri
     ]
+
+    if sys.platform == "linux":
+      self.play_args = ["aplay", "-q"]
+    else:
+      raise NotImplementedError
 
   def say(self, text: str):
     self.args[5] = text
