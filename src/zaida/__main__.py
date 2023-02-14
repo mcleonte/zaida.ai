@@ -13,7 +13,7 @@ class Zaida:
   def __init__(self):
     self.nlu = NLUserver("http://localhost:5005")
     self.stt = STTserver("ws://localhost:2700")
-    self.tts = TTSserver()
+    self.tts = TTSserver("http://localhost:59125/api/tts")
 
   async def listen(self):
     async for text, is_partial in self.stt.listen():
