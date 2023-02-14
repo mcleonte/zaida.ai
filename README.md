@@ -16,11 +16,12 @@
 ```bash
 git clone https://github.com/mcleonte/zaida.ai.git
 cd zaida.ai/build/
-docker compose up --detach
+docker compose up # add --detach flag or run it in another terminal
+./nlu-train.sh
 poetry install
 poetry run python -m zaida
 ```
-After your first voice input, if you get a ConnectionError, your should wait a
+If ./nlu-train.sh fails with a ConnectionError, your should wait a
 few more seconds to let all the Docker services to start up, as the NLU service
 take a few more seconds longer. After the initialization, interactions should
 feel real-time.
