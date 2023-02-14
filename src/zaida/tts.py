@@ -4,6 +4,10 @@ Text-to-Speech module based on Mimic3.
 
 import subprocess
 import sys
+import sounddevice as sd
+from typing import Annotated, Literal
+import requests
+import asyncio
 
 
 class TTSserver:
@@ -14,6 +18,7 @@ class TTSserver:
   def __init__(
       self,
       uri=None,
+      output_device="pipewire",
       protocol="http",
       hostname="localhost",
       port=59125,
@@ -27,40 +32,36 @@ class TTSserver:
     if voice and speaker:
       uri += f"?voice={voice}&speaker={speaker}"
     self.uri = uri
-    self.args = [
-        "curl", "-s", "-X", "POST", "--data", None, "--output", "-", self.uri
-    ]
 
-    if sys.platform == "linux":
-      self.play_args = ["aplay", "-q"]
-    elif sys.platform == "darwin":
-      self.play_args = ["afplay"]
-    elif sys.platform == "win32":
-      self.play_args = ["play", "-q"]
-    else:
-      raise NotImplementedError
+    self.output_device = sd.query_devices(output_device, "output")
+    self.output_device_index = self.output_device["index"]
 
-  def say(self, text: str):
-    self.args[5] = text
-    p1 = subprocess.Popen(self.args, stdout=subprocess.PIPE)
-    self.proc = subprocess.run(self.play_args, stdin=p1.stdout)
+    # settings supported by mimic3
+    self.output_channels = 1
+    self.bytes_per_sample = 2  # 16 bits
+    self.samples_per_second = 22050
 
-  def is_talking(self):
-    return self.proc and self.proc.poll() is None
+    frame_duration = 10
+    self.samples_per_frame = (frame_duration * self.samples_per_second) // 1000
 
-  def wait(self):
-    while self.proc:
-      pass
+    self.stream = sd.RawOutputStream(
+        samplerate=self.samples_per_second,
+        blocksize=self.samples_per_frame,
+        device=self.output_device_index,
+        channels=self.output_channels,
+        dtype="int16",
+    )
 
-  def quiet(self):
-    if self.proc:
-      self.proc.terminate()
+  async def say(self, text: str):
+    data = requests.post(self.uri, text)._content
+    self.stream.start()
+    self.stream.write(data)
+    self.stream.stop()
 
 
-def main(text="Hello World"):
-  TTSserver().say(text)
+async def main(text="Hello World"):
+  await TTSserver().say(text)
 
 
 if __name__ == "__main__":
-  import sys
-  main(sys.argv[-1])
+  asyncio.run(main(sys.argv[-1]))
