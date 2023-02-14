@@ -23,7 +23,7 @@ class Zaida:
         print("\n", text, sep="")
         resp = self.nlu.interpret(text)
         print(resp)
-        self.tts.say(resp)
+        await self.tts.say(resp)
 
   def run(self):
     asyncio.run(self.listen())
