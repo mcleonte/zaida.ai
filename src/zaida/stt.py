@@ -2,38 +2,47 @@
 Speech-to-Text module with Vosk
 """
 
-import queue
 import sounddevice as sd
-import webrtcvad
-from vosk import Model, KaldiRecognizer
+import websockets
+import asyncio
 import sys
 import json
-import numpy as np
 from typing import Annotated, Literal
-import pathlib
 
 FrameDuration = Annotated[Literal[10, 20, 30], "ms"]
 
 
-class STT:
+class STTserver:
+  """
+  Interface class for communicating with Vosk server.
+  """
 
-  def __init__(self):
-    self.set_input_device(10)
+  def __init__(
+      self,
+      uri=None,
+      protocol="ws",
+      hostname="localhost",
+      port=2700,
+      input_device=None,  #"eah-az60",
+  ):
+
+    if uri is None:
+      uri = f"{protocol}://{hostname}:{port}"
+    self.uri = uri
+
+    self.set_input_device(input_device)
     self.set_frame_duration(10)
-    self.model = Model(str( \
-        pathlib.Path(__file__).parent.parent.parent / "res" / "stt_vosk_model"))
-    self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
-    self.recognizer.SetWords(False)
-    self.vad = webrtcvad.Vad(mode=2)
 
-  def set_input_device(self, index=None):
-    if index is None:
-      index = int(
-          input(
-              f"Type index to choose input device:\n\n{sd.query_devices()}\n\n")
-      )  #sd.default.device[0]
-    self.input_device_index = index
-    self.input_device = sd.query_devices(index, "input")
+  def set_input_device(self, device=None):
+    if device is None:
+      device = input(
+          f"Type index to choose input device:\n\n{sd.query_devices()}\n\n")
+    try:
+      device = int(device)
+    except:
+      pass
+    self.input_device = sd.query_devices(device, "input")
+    self.input_device_index = self.input_device["index"]
     self.sample_rate = int(self.input_device["default_samplerate"])
     self.input_channels = int(self.input_device["max_input_channels"])
     print(f"Input device selected: {self.input_device}")
@@ -47,44 +56,47 @@ class STT:
   def get_input_devices(self):
     print(sd.query_devices())
 
-  def listen(self):
-    q = queue.Queue()
+  async def listen(self):
 
-    def record_callback(indata, frames: int, time, status) -> None:
-      if status:
-        print(status, file=sys.stderr)
-      #byte_data = bytes(indata)
-      #if self.vad.is_speech(byte_data, self.sample_rate,
-      #                      self.samples_per_frame):
-      q.put(bytes(indata))  #.tobytes())
-      #else:
-      #  q.put(self.silence)
+    loop = asyncio.get_running_loop()
+    queue = asyncio.Queue()
+
+    def callback(indata, frames: int, time, status) -> None:
+      loop.call_soon_threadsafe(queue.put_nowait, bytes(indata))
 
     with sd.RawInputStream(
         samplerate=self.sample_rate,
         blocksize=self.samples_per_frame,
-        dtype=np.int16,
+        dtype="int16",
         device=self.input_device_index,
         channels=self.input_channels,
-        callback=record_callback,
-    ):
-      while True:
-        if self.recognizer.AcceptWaveform(q.get()):
-          result = json.loads(self.recognizer.Result())
-          if result["text"]:
-            yield result["text"], True
-        else:
-          result = json.loads(self.recognizer.PartialResult())
-          yield result["partial"], False
+        callback=callback,
+    ) as device:
+
+      async with websockets.connect(self.uri) as websocket:
+
+        await websocket.send(
+            json.dumps({"config": {
+                "sample_rate": device.samplerate
+            }}))
+
+        while True:
+          await websocket.send(await queue.get())
+          result = json.loads(await websocket.recv())
+          if "partial" in result:
+            yield result["partial"], True
+            continue
+          yield result["text"], False
 
 
-def main():
-  for text, is_final in STT().listen():
-    if is_final:
-      print("\n", text, sep="")
-    else:
+async def main():
+  async for text, is_partial in STTserver().listen():
+    if is_partial:
       print(f"partial: {text}\r", end="")
+      continue
+    elif text:
+      print("\n", text, sep="")
 
 
 if __name__ == "__main__":
-  main()
+  asyncio.run(main())
