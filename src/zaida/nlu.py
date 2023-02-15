@@ -4,7 +4,7 @@ Natural Languange Understanding module with dockerized Rasa
 
 import requests
 import json
-from pprint import pprint
+import sys
 
 
 class NLUserver:
@@ -40,11 +40,9 @@ class NLUserver:
 
 
 def main(text=None):
-  nlu = NLUserver()
   text = text or "What time is it in Amsterdam?"
-  print(nlu.interpret(text))
+  print(NLUserver().interpret(text))
 
 
 if __name__ == "__main__":
-  import sys
   main(sys.argv[-1])
