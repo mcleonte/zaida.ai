@@ -25,12 +25,13 @@ services:
       - /etc/localtime:/etc/localtime
 
   stt:
-    image: alphacep/kaldi-en:latest
+    build: ./docker/stt
+    image: mcleonte/zaida-stt
     container_name: zaida-stt
     ports:
-      - 2700:2700
+      - 8765:8765
     volumes:
-      - ./docker/stt/model:/opt/vosk-model-en/model
+      - ./docker/stt/:/app/
 
   tts:
     build: ./docker/tts
