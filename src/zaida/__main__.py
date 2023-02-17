@@ -1,10 +1,13 @@
 """
 Zaida AI assistant entrypoint
 """
+
+import asyncio
+import logging
+
 from zaida.nlu import NLUserver
 from zaida.tts import TTSserver
 from zaida.stt import STTserver
-import asyncio
 
 
 class Zaida:
@@ -12,7 +15,7 @@ class Zaida:
 
   def __init__(self):
     self.nlu = NLUserver("http://localhost:5005")
-    self.stt = STTserver("ws://localhost:2700")
+    self.stt = STTserver("ws://localhost:8765")
     self.tts = TTSserver("http://localhost:59125/api/tts")
 
   async def listen(self):
@@ -23,7 +26,7 @@ class Zaida:
         print("\n", text, sep="")
         resp = self.nlu.interpret(text)
         print(resp)
-        await self.tts.say(resp)
+        self.tts.say(resp)
 
   def run(self):
     asyncio.run(self.listen())
