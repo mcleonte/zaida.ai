@@ -1,5 +1,5 @@
 """
-Speech-to-Text module with Vosk
+Speech-to-Text module
 """
 
 import sounddevice as sd
@@ -8,6 +8,9 @@ import asyncio
 import sys
 import json
 from typing import Annotated, Literal
+import webrtcvad
+import numpy as np
+from speech_recognition import AudioData
 
 FrameDuration = Annotated[Literal[10, 20, 30], "ms"]
 
@@ -22,8 +25,8 @@ class STTserver:
       uri=None,
       protocol="ws",
       hostname="localhost",
-      port=2700,
-      input_device=None,  #"eah-az60",
+      port=8765,
+      input_device=None,
   ):
 
     if uri is None:
@@ -31,7 +34,11 @@ class STTserver:
     self.uri = uri
 
     self.set_input_device(input_device)
-    self.set_frame_duration(10)
+    self.set_frame_duration(30)
+
+    self.vad = webrtcvad.Vad()
+    self.vad.set_mode(2)
+    self.pause_frames = 0
 
   def set_input_device(self, device=None):
     if device is None:
@@ -43,59 +50,68 @@ class STTserver:
       pass
     self.input_device = sd.query_devices(device, "input")
     self.input_device_index = self.input_device["index"]
-    self.sample_rate = int(self.input_device["default_samplerate"])
-    self.input_channels = int(self.input_device["max_input_channels"])
+    self.samples_per_second = 16000  # int(self.input_device["default_samplerate"])
+    self.input_channels = 1  # int(self.input_device["max_input_channels"])
     print(f"Input device selected: {self.input_device}")
 
   def set_frame_duration(self, frame_duration: FrameDuration = 10):
     self.frame_duration = frame_duration
-    self.samples_per_frame = frame_duration * self.sample_rate // 1000
+    self.samples_per_frame = frame_duration * self.samples_per_second // 1000
     self.frames_per_second = 1000 / frame_duration
-    self.silence = b"\x00" * self.samples_per_frame
-
-  def get_input_devices(self):
-    print(sd.query_devices())
 
   async def listen(self):
-
     loop = asyncio.get_running_loop()
     queue = asyncio.Queue()
 
+    # pylint: disable=unused-argument
     def callback(indata, frames: int, time, status) -> None:
-      loop.call_soon_threadsafe(queue.put_nowait, bytes(indata))
+      if self.vad.is_speech(indata, self.samples_per_second):
+        self.pause_frames = 0
+        loop.call_soon_threadsafe(queue.put_nowait, indata)
+      else:
+        self.pause_frames += 1
+        loop.call_soon_threadsafe(queue.put_nowait, b"")
 
     with sd.RawInputStream(
-        samplerate=self.sample_rate,
+        samplerate=self.samples_per_second,
         blocksize=self.samples_per_frame,
         dtype="int16",
         device=self.input_device_index,
         channels=self.input_channels,
         callback=callback,
-    ) as device:
+    ):
 
       async with websockets.connect(self.uri) as websocket:
 
-        await websocket.send(
-            json.dumps({"config": {
-                "sample_rate": device.samplerate
-            }}))
+        # await websocket.send(
+        #     json.dumps({"config": {
+        #         "sample_rate": device.samplerate
+        #     }}))
 
+        chunks = []
         while True:
-          await websocket.send(await queue.get())
-          result = json.loads(await websocket.recv())
-          if "partial" in result:
-            yield result["partial"], True
+          if chunk := await queue.get():
+            chunks.append(chunk)
+
+          print(f"{self.pause_frames}, {len(chunks)}   \r", end="")
+          if not chunks or self.pause_frames < 10:
             continue
-          yield result["text"], False
+
+          audio = AudioData(b"".join(chunks), self.samples_per_second, 2)
+          await websocket.send(audio.get_raw_data())
+          yield await websocket.recv()
+          chunks = []
 
 
 async def main():
-  async for text, is_partial in STTserver().listen():
-    if is_partial:
-      print(f"partial: {text}\r", end="")
-      continue
-    elif text:
-      print("\n", text, sep="")
+  async for text in STTserver(input_device="pipewire").listen():
+    print(f"\n{text}")
+  # async for text, is_partial in STTserver().listen():
+  #   if is_partial:
+  #     print(f"partial: {text}\r", end="")
+  #     continue
+  #   elif text:
+  #     print("\n", text, sep="")
 
 
 if __name__ == "__main__":
