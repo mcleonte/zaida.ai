@@ -1,23 +1,35 @@
 """
-Speech-to-Text module
+Speech-to-Text module based on dockerized Open AI Whisper websocket server
 """
 
-import sounddevice as sd
-import websockets
 import asyncio
-import sys
-import json
-from typing import Annotated, Literal
-import webrtcvad
-import numpy as np
-from speech_recognition import AudioData
+import speech_recognition as sr
+import websockets
+import logging
+from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
-FrameDuration = Annotated[Literal[10, 20, 30], "ms"]
+logging.basicConfig(format="%(asctime)s | %(message)s")
+logger = logging.getLogger("zaida.stt")
+logger.setLevel(logging.INFO)
+
+# Supress ALSA warnings and errors from terminal.
+# https://stackoverflow.com/questions/7088672#answer-13453192
 
 
-class STTserver:
+# pylint: disable=unused-argument
+def py_error_handler(filename, line, function, err, fmt):
+  pass
+
+
+make_cfunc = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
+c_error_handler = make_cfunc(py_error_handler)
+asound = cdll.LoadLibrary("libasound.so")
+asound.snd_lib_error_set_handler(c_error_handler)
+
+
+class STTclient:
   """
-  Interface class for communicating with Vosk server.
+  Client class for communicating with the STT websocket server.
   """
 
   def __init__(
@@ -26,92 +38,57 @@ class STTserver:
       protocol="ws",
       hostname="localhost",
       port=8765,
-      input_device=None,
+      energy_threshold=50,
   ):
 
     if uri is None:
       uri = f"{protocol}://{hostname}:{port}"
     self.uri = uri
 
-    self.set_input_device(input_device)
-    self.set_frame_duration(30)
+    self.mic = sr.Microphone(sample_rate=16000)
+    self.rec = sr.Recognizer()
+    self.rec.pause_threshold = 1
+    self.queue = asyncio.Queue()
 
-    self.vad = webrtcvad.Vad()
-    self.vad.set_mode(2)
-    self.pause_frames = 0
+    if energy_threshold is None:
+      self.calibrate()
+    else:
+      self.rec.energy_threshold = energy_threshold
+      self.rec.dynamic_energy_threshold = False
 
-  def set_input_device(self, device=None):
-    if device is None:
-      device = input(
-          f"Type index to choose input device:\n\n{sd.query_devices()}\n\n")
-    try:
-      device = int(device)
-    except:
-      pass
-    self.input_device = sd.query_devices(device, "input")
-    self.input_device_index = self.input_device["index"]
-    self.samples_per_second = 16000  # int(self.input_device["default_samplerate"])
-    self.input_channels = 1  # int(self.input_device["max_input_channels"])
-    print(f"Input device selected: {self.input_device}")
-
-  def set_frame_duration(self, frame_duration: FrameDuration = 10):
-    self.frame_duration = frame_duration
-    self.samples_per_frame = frame_duration * self.samples_per_second // 1000
-    self.frames_per_second = 1000 / frame_duration
+  def calibrate(self, duration: float = 3.):
+    with self.mic as source:
+      logger.info("Calibrating microphone...")
+      self.rec.adjust_for_ambient_noise(source, duration=duration)
+      logger.info("Microphone calibrated to energy threshold of %s",
+                  self.rec.energy_threshold)
 
   async def listen(self):
+
     loop = asyncio.get_running_loop()
-    queue = asyncio.Queue()
 
-    # pylint: disable=unused-argument
-    def callback(indata, frames: int, time, status) -> None:
-      if self.vad.is_speech(indata, self.samples_per_second):
-        self.pause_frames = 0
-        loop.call_soon_threadsafe(queue.put_nowait, indata)
-      else:
-        self.pause_frames += 1
-        loop.call_soon_threadsafe(queue.put_nowait, b"")
+    def callback(recognizer: sr.Recognizer, audio: sr.AudioData):
+      logger.info("Callback called, putting audio of size %s in queue",
+                  len(raw_data := audio.get_raw_data()))
+      loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
+      logger.info("Queue increased: %s", self.queue.qsize())
 
-    with sd.RawInputStream(
-        samplerate=self.samples_per_second,
-        blocksize=self.samples_per_frame,
-        dtype="int16",
-        device=self.input_device_index,
-        channels=self.input_channels,
-        callback=callback,
-    ):
-
-      async with websockets.connect(self.uri) as websocket:
-
-        # await websocket.send(
-        #     json.dumps({"config": {
-        #         "sample_rate": device.samplerate
-        #     }}))
-
-        chunks = []
+    async with websockets.connect(self.uri, logger=logger) as websocket:
+      self.stop_listening = self.rec.listen_in_background(self.mic, callback)
+      try:
         while True:
-          if chunk := await queue.get():
-            chunks.append(chunk)
-
-          print(f"{self.pause_frames}, {len(chunks)}   \r", end="")
-          if not chunks or self.pause_frames < 10:
-            continue
-
-          audio = AudioData(b"".join(chunks), self.samples_per_second, 2)
-          await websocket.send(audio.get_raw_data())
+          logger.info("Waiting for audio queue to send to server...")
+          audio = await self.queue.get()
+          await websocket.send(audio)
+          logger.info("Sent to server, waiting to receive transcription...")
           yield await websocket.recv()
-          chunks = []
+      except KeyboardInterrupt:
+        self.stop_listening(wait_for_stop=False)
 
 
 async def main():
-  async for text in STTserver(input_device="pipewire").listen():
-    print(f"\n{text}")
-  # async for text, is_partial in STTserver().listen():
-  #   if is_partial:
-  #     print(f"partial: {text}\r", end="")
-  #     continue
-  #   elif text:
-  #     print("\n", text, sep="")
+  async for text in STTclient().listen():
+    print(text)
 
 
 if __name__ == "__main__":
