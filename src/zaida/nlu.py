@@ -1,5 +1,5 @@
 """
-Natural Languange Understanding module with dockerized Rasa
+Zaida AI Natural Languange Understanding module.
 """
 
 import requests
@@ -7,17 +7,17 @@ import json
 import sys
 
 
-class NLUserver:
+class NLUclient:
   """
-  Interface class for communicating with Rasa server.
+  Client class for communicating with the NLU server.
   """
 
   def __init__(
-      self,
-      uri=None,
-      protocol="http",
-      hostname="localhost",
-      port=5005,
+    self,
+    uri=None,
+    protocol="http",
+    hostname="localhost",
+    port=5005,
   ):
 
     if uri is None:
@@ -27,9 +27,9 @@ class NLUserver:
 
   def interpret(self, text):
     resp = requests.post(
-        self.uri,
-        data=json.dumps({"message": text}),
-        timeout=None,
+      self.uri,
+      data=json.dumps({"message": text}),
+      timeout=None,
     )
     if not resp.ok:
       return f"Sorry, Rasa server returned status code {resp.status_code}"
@@ -41,7 +41,7 @@ class NLUserver:
 
 def main(text=None):
   text = text or "What time is it in Amsterdam?"
-  print(NLUserver().interpret(text))
+  print(NLUclient().interpret(text))
 
 
 if __name__ == "__main__":
