@@ -32,6 +32,10 @@ services:
       - 8765:8765
     volumes:
       - ./docker/stt/:/app/
+    environment:
+      - PORT=8765
+      - MODEL_PATH=/app/models
+      - MODEL_NAME=medium.en
 
   tts:
     build: ./docker/tts
