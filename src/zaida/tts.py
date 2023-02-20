@@ -1,16 +1,16 @@
 """
-Text-to-Speech module based on Mimic3.
+Zaida AI Text-to-Speech module.
 """
 
-import subprocess
 import sys
+import subprocess
 import sounddevice as sd
-from typing import Annotated, Literal
 import requests
 import asyncio
+import pyperclip
 
 
-class TTSserver:
+class TTSclient:
   """
   Interface class for communicating with Mimic3 server.
   """
@@ -45,23 +45,23 @@ class TTSserver:
     self.samples_per_frame = (frame_duration * self.samples_per_second) // 1000
 
     self.stream = sd.RawOutputStream(
-        samplerate=self.samples_per_second,
-        blocksize=self.samples_per_frame,
-        device=self.output_device_index,
-        channels=self.output_channels,
-        dtype="int16",
+      samplerate=self.samples_per_second,
+      blocksize=self.samples_per_frame,
+      device=self.output_device_index,
+      channels=self.output_channels,
+      dtype="int16",
     )
 
-  async def say(self, text: str):
-    data = requests.post(self.uri, text)._content
+  def say(self, text: str):
+    data = requests.post(self.uri, text.encode("utf-8"))._content
     self.stream.start()
     self.stream.write(data)
     self.stream.stop()
 
 
-async def main(text="Hello World"):
-  await TTSserver().say(text)
+def main(text="Hello World"):
+  TTSclient().say(text)
 
 
 if __name__ == "__main__":
-  asyncio.run(main(sys.argv[-1]))
+  main(pyperclip.paste())  #sys.argv[-1])
