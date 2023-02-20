@@ -1,5 +1,5 @@
 """
-Speech-to-Text module based on dockerized Open AI Whisper websocket server
+Zaida AI Speech-to-Text module
 """
 
 import asyncio
@@ -33,12 +33,12 @@ class STTclient:
   """
 
   def __init__(
-      self,
-      uri=None,
-      protocol="ws",
-      hostname="localhost",
-      port=8765,
-      energy_threshold=50,
+    self,
+    uri=None,
+    protocol="ws",
+    hostname="localhost",
+    port=8765,
+    energy_threshold=50,
   ):
 
     if uri is None:
