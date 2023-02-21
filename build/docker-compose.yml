@@ -38,10 +38,10 @@ services:
       - MODEL_NAME=medium.en
 
   tts:
-    build: ./docker/tts
-    image: mcleonte/zaida-tts
+    image: mycroftai/mimic3
     container_name: zaida-tts
     ports:
       - 59125:59125
     volumes:
-      - ./docker/tts/:/home/mimic3/.local/share/mycroft/mimic3
+      - ./docker/tts/models/:/home/mimic3/.local/share/mycroft/mimic3/models/
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329
