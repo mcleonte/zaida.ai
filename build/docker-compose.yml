@@ -1,7 +1,7 @@
 version: "3.0"
 services:
   nlu:
-    build: ./docker/nlu
+    build: ./docker/nlu/
     image: mcleonte/zaida-nlu
     container_name: zaida-nlu
     user: 1000:1000
@@ -15,7 +15,7 @@ services:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
 
   nlu-actions:
-    build: ./docker/nlu-actions
+    build: ./docker/nlu-actions/
     image: mcleonte/zaida-nlu-actions
     container_name: zaida-nlu-actions
     expose:
@@ -25,7 +25,7 @@ services:
       - /etc/localtime:/etc/localtime
 
   stt:
-    build: ./docker/stt
+    build: ./docker/stt/
     image: mcleonte/zaida-stt
     container_name: zaida-stt
     ports:
@@ -36,6 +36,12 @@ services:
       - PORT=8765
       - MODEL_PATH=/app/models
       - MODEL_NAME=medium.en
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
 
   tts:
     image: mycroftai/mimic3
@@ -43,5 +49,5 @@ services:
     ports:
       - 59125:59125
     volumes:
-      - ./docker/tts/models/:/home/mimic3/.local/share/mycroft/mimic3/models/
+      - ./docker/tts/voices/:/home/mimic3/.local/share/mycroft/mimic3/voices/
     command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329
