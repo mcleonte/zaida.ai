@@ -60,8 +60,10 @@ class TTSclient:
 
 
 def main(text="Hello World"):
+  if text == "clip":
+    text = pyperclip.paste()
   TTSclient().say(text)
 
 
 if __name__ == "__main__":
-  main(pyperclip.paste())  #sys.argv[-1])
+  main(sys.argv[-1])
