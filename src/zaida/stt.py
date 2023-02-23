@@ -38,7 +38,7 @@ class STTclient:
     protocol="ws",
     hostname="localhost",
     port=8765,
-    energy_threshold=50,
+    energy_threshold=150,
   ):
 
     if uri is None:
