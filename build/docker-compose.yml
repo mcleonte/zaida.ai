@@ -35,7 +35,7 @@ services:
     environment:
       - PORT=8765
       - MODEL_PATH=/app/models
-      - MODEL_NAME=medium.en
+      - MODEL_NAME=small.en
     deploy:
       resources:
         reservations:
@@ -44,10 +44,19 @@ services:
               count: 1
 
   tts:
-    image: mycroftai/mimic3
+    build:
+      context: ./docker/tts
+      dockerfile: Dockerfile.gpu
+    image: mcleonte/zaida-tts
     container_name: zaida-tts
     ports:
       - 59125:59125
     volumes:
       - ./docker/tts/voices/:/home/mimic3/.local/share/mycroft/mimic3/voices/
     command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
