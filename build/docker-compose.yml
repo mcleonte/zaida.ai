@@ -36,6 +36,7 @@ services:
       - ./docker/stt/:/app/
     environment:
       - PORT=8765
+      - LOG_LEVEL=DEBUG
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
