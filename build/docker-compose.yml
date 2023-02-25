@@ -23,6 +23,8 @@ services:
     volumes:
       - ./docker/nlu-actions:/app/actions
       - /etc/localtime:/etc/localtime
+    environment:
+      - LOG_LEVEL=DEBUG
 
   stt:
     build: ./docker/stt/
