@@ -13,11 +13,13 @@ intents:
 
 entities:
   - GPE
+  - PERSON
   - country_info
 
 actions:
   - tell_time
   - tell_country_info
+  - multimodal_pipeline
 
 responses:
   utter_greet:
