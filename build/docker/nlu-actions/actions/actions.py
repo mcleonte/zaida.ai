@@ -27,7 +27,7 @@ from transformers import pipeline
 import wikipedia
 
 logger = logging.getLogger("actions-nlu")
-logger.setLevel(logging.DEBUG) #os.environ["LOG_LEVEL"])
+logger.setLevel(os.environ["LOG_LEVEL"])
 logger.addHandler(logging.StreamHandler())
 
 class ActionTellTime(Action):
