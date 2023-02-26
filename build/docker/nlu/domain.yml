@@ -10,11 +10,15 @@ intents:
   - bot_challenge
   - ask_time
   - ask_country_info
+  - multimodal_pipeline
 
 entities:
   - GPE
   - PERSON
   - country_info
+  - input
+  - action
+  - output
 
 actions:
   - tell_time
