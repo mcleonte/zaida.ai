@@ -1,21 +1,94 @@
-# Extend the official Rasa SDK image
-FROM rasa/rasa-sdk
 
-# Use subdirectory as working directory
+FROM python:3.10.10-slim as base
+
+# hadolint ignore=DL3005,DL3008
+RUN apt-get update -qq \
+    # Make sure that all security updates are installed
+    && apt-get dist-upgrade -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
+      python3-venv \
+      python3-pip \
+      python3-dev \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 100 \
+   && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100
+
+FROM base as python_builder
+
+# hadolint ignore=DL3008
+RUN apt-get update -qq \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+ && apt-get autoremove -y
+
+# install poetry
+# keep this in sync with the version in pyproject.toml and Dockerfile
+ENV POETRY_VERSION 1.2.2
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl -sSL https://install.python-poetry.org | python
+ENV PATH "/root/.local/bin:/opt/venv/bin:${PATH}"
+
+# install dependencies
+RUN git clone --branch 3.4.0 https://github.com/RasaHQ/rasa-sdk \
+ && mv rasa-sdk /app \
+ && apt-get remove git -y
+
 WORKDIR /app
 
-# Copy any additional custom requirements, if necessary (uncomment next line)
+# hadolint ignore=SC1091,DL3013
+RUN python -m venv /opt/venv && \
+  . /opt/venv/bin/activate && \
+  pip install --no-cache-dir -U pip && \
+  pip install --no-cache-dir wheel && \
+  poetry install --no-dev --no-root --no-interaction
+
+# install dependencies and build wheels
+# hadolint ignore=SC1091,DL3013
+RUN . /opt/venv/bin/activate && poetry build -f wheel -n \
+  && pip install --no-cache-dir --no-deps dist/*.whl \
+  && mkdir /wheels \
+  && poetry export -f requirements.txt --without-hashes --output /wheels/requirements.txt \
+  && poetry run pip wheel --wheel-dir=/wheels -r /wheels/requirements.txt \
+  && find /app/dist -maxdepth 1 -mindepth 1 -name '*.whl' -print0 | xargs -0 -I {} mv {} /wheels/
+
+WORKDIR /wheels
+# install wheels
+# hadolint ignore=SC1091,DL3013
+RUN find . -name '*.whl' -maxdepth 1 -exec basename {} \; | awk -F - '{ gsub("_", "-", $1); print $1 }' | uniq > /wheels/requirements.txt \
+  && rm -rf /opt/venv \
+  && python -m venv /opt/venv \
+  && . /opt/venv/bin/activate \
+  && pip install --no-cache-dir -U pip \
+  && pip install --no-cache-dir --no-index --find-links=/wheels -r /wheels/requirements.txt \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && rm -rf /wheels \
+  && rm -rf /root/.cache/pip/*
+
+# final image
+FROM base
+
+# copy needed files
+WORKDIR /app
+COPY --from=python_builder /opt/venv /opt/venv
+COPY --from=python_builder /app/entrypoint.sh /app/entrypoint.sh
+
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY requirements.txt .
-
-# Change back to root user to install dependencies
-USER root
-
-# Install extra requirements for actions code, if necessary (uncomment next line)
 RUN pip install -r requirements.txt
 
-# # Using volumes instead during dev
-# Copy actions folder to working directory
-# COPY . actions/
-
-# By best practices, don't run the code with root user
+# update permissions & change user
+RUN chgrp -R 0 /app && chmod -R g=u /app
 USER 1001
+
+# change shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# create a mount point for custom actions and the entry point
+EXPOSE 5055
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["start", "--actions", "actions"]
