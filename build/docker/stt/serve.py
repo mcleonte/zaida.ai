@@ -16,7 +16,7 @@ MODEL_PATH = os.environ["MODEL_PATH"] or "/app/models/"
 FP16 = torch.cuda.is_available()
 
 logger = logging.getLogger("STTserver")
-logger.setLevel(logging.INFO)
+logger.setLevel(os.environ["LOG_LEVEL"])
 logger.addHandler(logging.StreamHandler())
 
 logger.info("Loading model '%s'", MODEL_NAME)
