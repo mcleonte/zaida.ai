@@ -107,3 +107,35 @@ nlu:
       - what are the [borders](country_info) of Switzerland?
       - what's Romania's [population](country_info)?
       - what are Russia's [timezones](country_info)?
+
+  - intent: ask_wikipedia
+    examples: |
+      - What is the [turing machine](wiki_search_term)?
+      - What is [bismuth](wiki_search_term)?
+      - What was the [year 2000 problem](wiki_search_term)?
+      - What is [machine learning](wiki_search_term)?
+      - What is the [Vatican](wiki_search_term)?
+      - What is [cryptography](wiki_search_term)?
+      - What is [Python](wiki_search_term)?
+      - What is [computer science](wiki_search_term)?
+      - Who is [Elon Musk](wiki_search_term)?
+      - Who was [Nikola Tesla](wiki_search_term)?
+      - Who is [Barack Obama](wiki_search_term)?
+      - Who is [Captain America](wiki_search_term)?
+      - Who was [Gingis Khan](wiki_search_term)?
+      - Who is [Madonna](wiki_search_term)?
+      - Who is [the punisher](wiki_search_term)?
+
+  - intent: multimodal_pipeline
+    examples: |
+      - [Bookmark]{"entity":"output", "value":"bookmark"} this [page]{"entity":"input","value":"url"}.
+      - Add this [link]{"entity":"input", "value":"url"} to my [bookmarks]{"entity":"output", "value":"bookmark"}.
+      - Make me a [summary]{"entity":"action", "value":"summarize"} of this.
+      - Give me a [tldr]{"entity":"action", "value":"summarize"}.
+      - [TLDR]{"entity":"action", "value":"summarize"} me on this [post]{"entity":"input", "value":"url"}.
+      - [Summarize]{"entity":"action", "value":"summarize", "group":"0"} this [page]{"entity":"input","value":"url", "group":"0" } and [read]{"entity":"action", "value":"speech", "group":"1"} it for me.
+      - Save this [text]{"entity":"input","value":"text","group":"0"} into my [downloads]{"entity":"output", "group":"0"} folder, then make a [summary]{"entity":"action", "value":"summarize", "group":"1"} and save it to my [home]{"entity":"output", "group":"1"} folder, then [read]{"entity":"output", "group":"2"} it to me.
+      - [Read]{"entity":"output", "value":"speech"} this [article]{"entity":"input","value":"url"} for me.
+      - Save this [page]{"entity":"input", "value":"url"}'s [summary]{"entity":"action", "value":"summarize"} in my [project]{"entity":"output"} path.
+      - [Tell]{"entity":"output", "value":"read"} me a [summary]{"entity":"action", "value":"summarize"} of this [article]{"entity":"input","value":"url"}.
+      - Save the [summary]{"entity":"action", "value":"summarize"} of this [page]{"entity":"input", "value":"url"} in my [documents]{"entity":"output"} path.
