@@ -21,9 +21,11 @@ services:
     expose:
       - 5055
     volumes:
-      - ./docker/nlu-actions:/app/actions
+      - ./docker/nlu-actions/actions:/app/actions
+      - cache_huggingface_hub:/app/.cache/huggingface/hub
       - /etc/localtime:/etc/localtime
     environment:
+      - TRANSFORMERS_CACHE=/app/cache/
       - LOG_LEVEL=DEBUG
 
   stt:
@@ -63,3 +65,6 @@ services:
           devices:
             - capabilities: ["gpu"]
               count: 1
+
+volumes:
+  cache_huggingface_hub:
