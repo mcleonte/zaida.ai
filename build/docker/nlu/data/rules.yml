@@ -20,3 +20,13 @@ rules:
     steps:
       - intent: ask_country_info
       - action: tell_country_info
+
+  # - rule: Ask wikipedia
+  #   steps:
+  #     - intent: ask_wikipedia
+  #     - action: search_wikipedia
+  #
+  - rule: multimodal_pipeline
+    steps:
+      - intent: multimodal_pipeline
+      - action: multimodal_pipeline
