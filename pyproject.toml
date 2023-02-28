@@ -31,3 +31,9 @@ build-backend = "poetry.core.masonry.api"
 addopts = [
     "--import-mode=importlib",
 ]
+
+[tool.poetry.scripts]
+zaida = "zaida.main:main"
+zaida-stt = "zaida.stt:main"
+zaida-tts = "zaida.tts:main"
+zaida-nlu = "zaida.nlu:main"
