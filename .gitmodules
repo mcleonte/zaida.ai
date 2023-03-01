@@ -1,3 +1,0 @@
-[submodule "build/docker/tts"]
-	path = build/docker/tts
-	url = https://github.com/MycroftAI/mimic3.git
