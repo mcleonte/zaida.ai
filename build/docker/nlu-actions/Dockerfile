@@ -89,6 +89,4 @@ USER 1001
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # create a mount point for custom actions and the entry point
-EXPOSE 5055
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["start", "--actions", "actions"]
+ENTRYPOINT ["./entrypoint.sh", "start", "--actions", "actions"]

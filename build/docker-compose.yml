@@ -1,29 +1,55 @@
 version: "3.0"
 services:
+  proxy:
+    build: ./docker/proxy/
+    image: mcleonte/zaida-proxy
+    container_name: zaida-proxy
+    ports:
+      - 8000:8000
+      - 8080:8080
+      - 8088:8088
+    expose:
+      - 8087
+    # depends_on:
+    #   - stt
+    #   - nlu
+    #   - tts
+
   nlu:
     build: ./docker/nlu/
     image: mcleonte/zaida-nlu
     container_name: zaida-nlu
     user: 1000:1000
-    ports:
-      - 5005:5005
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://nlu:8000"]
+      interval: 5s
+      retries: 20
+    expose:
+      - 8000
     volumes:
       - ./docker/nlu:/app
-    command:
-      - run
+      - spacy_models:/opt/venv/lib/python3.10/site-packages/en_core_web_lg
+    command: run --debug --port 8000
     environment:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
 
   nlu-actions:
     build: ./docker/nlu-actions/
     image: mcleonte/zaida-nlu-actions
     container_name: zaida-nlu-actions
     expose:
-      - 5055
+      - 8000
     volumes:
       - ./docker/nlu-actions/actions:/app/actions
       - cache_huggingface_hub:/app/.cache/huggingface/hub
       - /etc/localtime:/etc/localtime
+    command: --port 8000
     environment:
       - TRANSFORMERS_CACHE=/app/cache/
       - LOG_LEVEL=DEBUG
@@ -32,12 +58,14 @@ services:
     build: ./docker/stt/
     image: mcleonte/zaida-stt
     container_name: zaida-stt
-    ports:
-      - 8765:8765
+    expose:
+      - 8080
     volumes:
       - ./docker/stt/:/app/
     environment:
-      - PORT=8765
+      - PROXY_PORT=8080
+      - NLU_HOST=nlu
+      - NLU_PORT=8000
       - LOG_LEVEL=DEBUG
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
@@ -47,18 +75,25 @@ services:
           devices:
             - capabilities: ["gpu"]
               count: 1
+    # depends_on:
+    #   nlu:
+    #     condition: service_healthy
 
   tts:
     build:
       context: ./docker/tts
-      dockerfile: Dockerfile.gpu
+      dockerfile: gpu.Dockerfile
     image: mcleonte/zaida-tts
     container_name: zaida-tts
-    ports:
-      - 59125:59125
+    expose:
+      - 8000
+      - 8088
     volumes:
-      - ./docker/tts/voices/:/home/mimic3/.local/share/mycroft/mimic3/voices/
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329
+      - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
+    environment:
+      - PROXY_PORT=8088
+      - LOG_LEVEL=DEBUG
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port 8000
     deploy:
       resources:
         reservations:
@@ -68,3 +103,5 @@ services:
 
 volumes:
   cache_huggingface_hub:
+  mimic3_voices:
+  spacy_models:
