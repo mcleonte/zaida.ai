@@ -82,7 +82,7 @@ class ZaidaClient:
     frame_duration = 10
     self.samples_per_frame = (frame_duration * self.samples_per_second) // 1000
 
-    self.stream = sd.RawOutputStream(
+    self.output_stream = sd.RawOutputStream(
         samplerate=self.samples_per_second,
         blocksize=self.samples_per_frame,
         device=self.output_device_index,
@@ -98,17 +98,17 @@ class ZaidaClient:
                   self.rec.energy_threshold)
 
   def say(self, bytestring: bytes):
-    self.stream.start()
-    self.stream.write(bytestring)
-    self.stream.stop()
+    self.output_stream.start()
+    self.output_stream.write(bytestring)
+    self.output_stream.stop()
 
   async def listen_forever(self):
 
     loop = asyncio.get_running_loop()
 
     def callback(recognizer: sr.Recognizer, audio: sr.AudioData):
-      logger.info("Callback called, putting audio of size %s in queue",
-                  len(raw_data := audio.get_raw_data()))
+      logger.debug("Callback called, putting audio of size %s in queue",
+                   len(raw_data := audio.get_raw_data()))
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
     async with websockets.connect(self.stt_uri, logger=logger) as websocket:
@@ -123,13 +123,13 @@ class ZaidaClient:
 
   async def answer_forever(self):
 
-    self.stream.start()
+    self.output_stream.start()
     try:
       async with websockets.connect(self.tts_uri, logger=logger) as websocket:
         async for bytestring in websocket:
-          self.stream.write(bytestring)
+          self.output_stream.write(bytestring)
     except KeyboardInterrupt:
-      self.stream.stop()
+      self.output_stream.stop()
 
   async def communicate(self):
     await asyncio.gather(
