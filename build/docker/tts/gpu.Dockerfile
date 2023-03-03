@@ -1,18 +1,40 @@
-FROM nvcr.io/nvidia/cuda:11.4.2-cudnn8-devel-ubuntu20.04
 
-COPY --from=mycroftai/mimic3 \
-  /home/mimic3/app/.venv \
-  /home/mimic3/app/mimic3_http \
-  /home/mimic3/app/mimic3_tts \
-  /home/mimic3/app/opentts_abc \
-  /
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
-RUN source /home/mimic3/app/.venv/bin/activate \
- && pip remove onnxruntime \
- && pip install onnxruntime-gpu
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
+
+RUN --mount=type=cache,id=apt-run,target=/var/cache/apt \
+    mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        python3 python3-pip python3-venv \
+        ca-certificates libespeak-ng1 \
+        git
 
 RUN useradd -ms /bin/bash mimic3
 
 USER mimic3
 
-ENTRYPOINT ["/home/mimic3/.venv/bin/python3", "-m", "mimic3_http", "--cuda"]
+RUN mkdir -p /home/mimic3/.local/share/mycroft/mimic3/voices/
+
+WORKDIR /home/mimic3/app
+
+RUN git clone https://github.com/MycroftAI/mimic3.git \
+ && mv mimic3/* . \
+ && rm -r mimic3
+
+RUN sed -i 's/onnxruntime/onnxruntime-gpu/' ./requirements.txt \
+ && echo "websockets" >> ./requirements.txt
+
+RUN --mount=type=cache,id=pip-requirements,target=/root/.cache/pip \
+    ./install.sh
+
+COPY app.py mimic3_http/
+
+ENTRYPOINT ["/home/mimic3/app/.venv/bin/python3", "-m", "mimic3_http", "--cuda"]
