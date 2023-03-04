@@ -28,7 +28,6 @@ from queue import Queue
 from urllib.parse import parse_qs
 from uuid import uuid4
 import websockets
-import threading
 
 import quart_cors
 from quart import (
@@ -52,30 +51,27 @@ from .const import SynthesisRequest, TextToWavParams
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(os.environ["LOG_LEVEL"])
 
-PROXY_PORT = os.environ["PROXY_PORT"]
-queue = asyncio.Queue()
+redirect_queue = asyncio.Queue()
 
 
-def serve_websocket():
+async def serve_redirect_websocket(port: int):
 
-  async def serve_forever():
+  async def redirect(websocket):
+    while True:
+      _LOGGER.debug("Waiting on queue...")
+      bytestring = await redirect_queue.get()
+      _LOGGER.debug("Audio received from queue, sending to server...")
+      await websocket.send(bytestring)
+      _LOGGER.debug("Audio send to client.")
 
-    async def send(websocket):
-      await websocket.send(await queue.get())
-
-    async with websockets.serve(send, "0.0.0.0", PROXY_PORT, logger=_LOGGER):
-      await asyncio.Future()
-
-  asyncio.run(serve_forever())
+  async with websockets.serve(redirect, "0.0.0.0", port, logger=_LOGGER):
+    await asyncio.Future()
 
 
 def get_app(args: argparse.Namespace, request_queue: Queue, temp_dir: str):
   """Create and return Quart application for Mimic 3 HTTP server"""
 
-  _LOGGER.setFormatter("%(asctime)s | %(message)s")
   _LOGGER.debug("Running get_app function")
-  # logging.basicConfig(format="%(asctime)s | %(message)s")
-  threading.Thread(target=serve_websocket).start()
 
   _TEMP_DIR: typing.Optional[Path] = None
 
@@ -309,7 +305,11 @@ def get_app(args: argparse.Namespace, request_queue: Queue, temp_dir: str):
     wav_bytes = await text_to_wav(
         TextToWavParams(text=text, **tts_args), no_cache=no_cache)
 
-    queue.put_nowait(wav_bytes)
+    _LOGGER.debug("Adding audio to queue")
+
+    redirect_queue.put_nowait(wav_bytes)
+
+    _LOGGER.debug("Audio added to queue")
 
     return "OK"
 
