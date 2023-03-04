@@ -4,10 +4,11 @@
 
 To ensure minimal resource usage on the client side, scalability, and the
 ability to easily incorporate new features in the future, a Microservice
-Architecture was adopted for this project. Each integration is implemented as a
-decoupled microservice that runs in a containerized environment with preloaded
-models and/or other resources for efficient processing and no load times during
-inference. The orchestration of these microservices is currently [configured](https://github.com/mcleonte/zaida.ai/blob/main/build/docker-compose.yml) with Docker Compose.
+Architecture was adopted for this project's server implementation. Each
+integration is implemented as a decoupled microservice that runs in a
+containerized environment with preloaded models and/or other resources for
+efficient processing and no load times during inference. The orchestration of
+these microservices is currently [configured](https://github.com/mcleonte/zaida.ai/blob/main/build/docker-compose.yml) with Docker Compose.
 
 Details on current integrations:
 - offline Speech-to-Text with [OpenAI Whisper](https://github.com/openai/whisper)
