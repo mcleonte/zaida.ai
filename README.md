@@ -27,11 +27,11 @@ Details on current integrations:
 
 ```bash
 git clone https://github.com/mcleonte/zaida.ai.git
-cd zaida.ai/build/
+cd zaida.ai
 docker compose up # add --detach flag or run it in another terminal
 ./nlu-train.sh
 poetry install
-poetry run python -m zaida
+zaida
 ```
 If ./nlu-train.sh fails with a ConnectionError, your should wait a
 few more seconds to let all the Docker services to start up, as the NLU service
