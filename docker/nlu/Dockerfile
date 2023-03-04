@@ -1,4 +1,4 @@
-FROM rasa/rasa:3.4.2-spacy-en
+FROM rasa/rasa:latest-spacy-en
 
 USER root
 
