@@ -4,7 +4,10 @@ Zaida AI client entrypoint
 
 import asyncio
 import websockets
+import requests
 import logging
+import json
+from datetime import datetime
 from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
 import speech_recognition as sr
@@ -12,7 +15,7 @@ import sounddevice as sd
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.client")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Supress ALSA warnings and errors from terminal.
 # https://stackoverflow.com/questions/7088672#answer-13453192
@@ -36,8 +39,6 @@ class ZaidaClient:
 
   def __init__(
       self,
-      uri=None,
-      protocol="ws",
       hostname="localhost",
       nlu_port=8000,
       stt_port=8080,
@@ -46,11 +47,9 @@ class ZaidaClient:
       output_device="pipewire",
   ):
 
-    if uri is None:
-      uri = f"{protocol}://{hostname}"
-    self.nlu_uri = f"{uri}:{nlu_port}"
-    self.stt_uri = f"{uri}:{stt_port}"
-    self.tts_uri = f"{uri}:{tts_port}"
+    self.nlu_uri = f"http://{hostname}:{nlu_port}"
+    self.stt_uri = f"ws://{hostname}:{stt_port}"
+    self.tts_uri = f"ws://{hostname}:{tts_port}"
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
@@ -129,10 +128,35 @@ class ZaidaClient:
     except KeyboardInterrupt:
       self.output_stream.stop()
 
+  async def text_forever(self):
+
+    loop = asyncio.get_running_loop()
+
+    while True:
+      text = await loop.run_in_executor(None, lambda: input("You: "))
+      print(f"[{datetime.now()}] You: {text}")
+      resp = requests.post(
+          self.nlu_uri,
+          data=json.dumps({
+              "message": text,
+              "sender": "mcleonte",
+          }),
+          timeout=None,
+      )
+      if not resp.ok:
+        print(resp.status)
+        continue
+      resp = resp.json()
+      try:
+        print(f"[{datetime.now()}] Zaida: {resp[0]['text']}")
+      except IndexError:
+        print(resp)
+
   async def communicate(self):
     await asyncio.gather(
         self.listen_forever(),
         self.answer_forever(),
+        self.text_forever(),
     )
 
   def run(self):
