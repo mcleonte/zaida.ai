@@ -33,7 +33,4 @@ addopts = [
 ]
 
 [tool.poetry.scripts]
-zaida = "zaida.main:main"
-zaida-stt = "zaida.stt:main"
-zaida-tts = "zaida.tts:main"
-zaida-nlu = "zaida.nlu:main"
+zaida = "zaida:main"
