@@ -28,8 +28,6 @@ c_error_handler = make_cfunc(py_error_handler)
 asound = cdll.LoadLibrary("libasound.so")
 asound.snd_lib_error_set_handler(c_error_handler)
 
-CLIENT_PORT = 8088
-
 
 class ZaidaClient:
   """
