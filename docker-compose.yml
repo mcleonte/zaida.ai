@@ -5,11 +5,9 @@ services:
     image: mcleonte/zaida-proxy
     container_name: zaida-proxy
     ports:
-      - 8000:8000
-      - 8080:8080
-      - 8088:8088
-    expose:
-      - 8087
+      - ${NLU_PORT}:${NLU_PORT}
+      - ${STT_PORT}:${STT_PORT}
+      - ${TTS_PORT}:${TTS_PORT}
     # depends_on:
     #   - stt
     #   - nlu
@@ -21,7 +19,7 @@ services:
     container_name: zaida-nlu
     user: 1000:1000
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://nlu:8000"]
+      test: ["CMD", "curl", "-f", "http://nlu:${NLU_PORT}"]
       interval: 5s
       retries: 20
     expose:
@@ -29,7 +27,7 @@ services:
     volumes:
       - ./docker/nlu:/app
       - spacy_models:/opt/venv/lib/python3.10/site-packages/en_core_web_lg
-    command: run --debug --port 8000
+    command: run --debug --port ${NLU_PORT}
     environment:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
     deploy:
@@ -59,13 +57,13 @@ services:
     image: mcleonte/zaida-stt
     container_name: zaida-stt
     expose:
-      - 8080
+      - ${STT_PORT}
     volumes:
       - ./docker/stt/:/app/
     environment:
-      - PROXY_PORT=8080
+      - PROXY_PORT=${STT_PORT}
       - NLU_HOST=nlu
-      - NLU_PORT=8000
+      - NLU_PORT=${NLU_PORT}
       - LOG_LEVEL=DEBUG
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
@@ -86,14 +84,14 @@ services:
     image: mcleonte/zaida-tts
     container_name: zaida-tts
     expose:
-      - 8000
-      - 8088
+      - ${NLU_PORT}
+      - ${TTS_PORT}
     volumes:
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
-      - PROXY_PORT=8088
+      - PROXY_PORT=${TTS_PORT}
       - LOG_LEVEL=DEBUG
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port 8000 --cuda
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${NLU_PORT} --cuda
     deploy:
       resources:
         reservations:
