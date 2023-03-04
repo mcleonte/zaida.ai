@@ -23,7 +23,7 @@ services:
       interval: 5s
       retries: 20
     expose:
-      - 8000
+      - ${NLU_PORT}
     volumes:
       - ./docker/nlu:/app
       - spacy_models:/opt/venv/lib/python3.10/site-packages/en_core_web_lg
