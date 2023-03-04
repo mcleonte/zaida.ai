@@ -94,11 +94,6 @@ class ZaidaClient:
       logger.info("Microphone calibrated to energy threshold of %s",
                   self.rec.energy_threshold)
 
-  def say(self, bytestring: bytes):
-    self.output_stream.start()
-    self.output_stream.write(bytestring)
-    self.output_stream.stop()
-
   async def listen_forever(self):
 
     loop = asyncio.get_running_loop()
