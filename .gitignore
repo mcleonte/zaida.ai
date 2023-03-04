@@ -3,7 +3,7 @@
 .*/
 __pycache__
 poetry.lock
-server/docker/nlu/models/
-server/docker/stt/models/
-server/docker/tts/voices/
+docker/nlu/models/
+docker/stt/models/
+docker/tts/voices/
 credentials.yml
