@@ -93,7 +93,7 @@ services:
     environment:
       - PROXY_PORT=8088
       - LOG_LEVEL=DEBUG
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port 8000
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port 8000 --cuda
     deploy:
       resources:
         reservations:
