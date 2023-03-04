@@ -50,7 +50,7 @@ services:
     command: --port 8000
     environment:
       - TRANSFORMERS_CACHE=/app/cache/
-      - LOG_LEVEL=DEBUG
+      - LOG_LEVEL=${LOG_LEVEL}
 
   stt:
     build: ./docker/stt/
@@ -64,7 +64,7 @@ services:
       - PROXY_PORT=${STT_PORT}
       - NLU_HOST=nlu
       - NLU_PORT=${NLU_PORT}
-      - LOG_LEVEL=DEBUG
+      - LOG_LEVEL=${LOG_LEVEL}
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
@@ -90,7 +90,7 @@ services:
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
       - PROXY_PORT=${TTS_PORT}
-      - LOG_LEVEL=DEBUG
+      - LOG_LEVEL=${LOG_LEVEL}
     command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${NLU_PORT} --cuda
     deploy:
       resources:
