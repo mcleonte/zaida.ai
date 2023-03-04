@@ -13,11 +13,11 @@ class NLUclient:
   """
 
   def __init__(
-    self,
-    uri=None,
-    protocol="http",
-    hostname="localhost",
-    port=5005,
+      self,
+      uri=None,
+      protocol="http",
+      hostname="localhost",
+      port=5005,
   ):
 
     if uri is None:
@@ -27,9 +27,9 @@ class NLUclient:
 
   def interpret(self, text):
     resp = requests.post(
-      self.uri,
-      data=json.dumps({"message": text}),
-      timeout=None,
+        self.uri,
+        data=json.dumps({"message": text}),
+        timeout=None,
     )
     if not resp.ok:
       return f"Sorry, Rasa server returned status code {resp.status_code}"

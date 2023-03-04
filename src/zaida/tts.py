@@ -45,15 +45,19 @@ class TTSclient:
     self.samples_per_frame = (frame_duration * self.samples_per_second) // 1000
 
     self.stream = sd.RawOutputStream(
-      samplerate=self.samples_per_second,
-      blocksize=self.samples_per_frame,
-      device=self.output_device_index,
-      channels=self.output_channels,
-      dtype="int16",
+        samplerate=self.samples_per_second,
+        blocksize=self.samples_per_frame,
+        device=self.output_device_index,
+        channels=self.output_channels,
+        dtype="int16",
     )
 
   def say(self, text: str):
-    data = requests.post(self.uri, text.encode("utf-8"))._content
+    data = requests.post(
+        self.uri,
+        text.encode("utf-8"),
+        timeout=None,
+    )._content
     self.stream.start()
     self.stream.write(data)
     self.stream.stop()
