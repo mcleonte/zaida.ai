@@ -12,6 +12,7 @@ from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
 import speech_recognition as sr
 import sounddevice as sd
+import pyperclip
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.client")
@@ -34,7 +35,7 @@ asound.snd_lib_error_set_handler(c_error_handler)
 
 class ZaidaClient:
   """
-  Client class for communicating with the STT websocket server.
+  Main class for handling all interactions between the user and the server.
   """
 
   def __init__(
@@ -45,9 +46,10 @@ class ZaidaClient:
       output_device="pipewire",
   ):
 
-    self.nlu_uri = f"http://{hostname}:{port}/nlu"
     self.stt_uri = f"ws://{hostname}:{port}/stt"
     self.tts_uri = f"ws://{hostname}:{port}/tts"
+    self.nlu_uri = f"http://{hostname}:{port}/nlu"
+    self.nlu_actions_uri = f"http://{hostname}:{port}/nlu-actions"
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
@@ -101,12 +103,12 @@ class ZaidaClient:
                    len(raw_data := audio.get_raw_data()))
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
-    async with websockets.connect(self.stt_uri, logger=logger) as websocket:
+    async with websockets.connect(self.stt_uri, logger=logger) as ws:
       self.stop_listening = self.rec.listen_in_background(self.mic, callback)
       try:
         while True:
           logger.debug("Waiting for audio queue...")
-          await websocket.send(await self.queue.get())
+          await ws.send(await self.queue.get())
           logger.debug("Audio sent to server.")
       except KeyboardInterrupt:
         self.stop_listening(wait_for_stop=False)
@@ -115,8 +117,8 @@ class ZaidaClient:
 
     self.output_stream.start()
     try:
-      async with websockets.connect(self.tts_uri, logger=logger) as websocket:
-        async for bytestring in websocket:
+      async with websockets.connect(self.tts_uri, logger=logger) as ws:
+        async for bytestring in ws:
           self.output_stream.write(bytestring)
     except KeyboardInterrupt:
       self.output_stream.stop()
@@ -145,11 +147,24 @@ class ZaidaClient:
       except IndexError:
         print(resp)
 
+  async def execute_forever(self):
+
+    async with websockets.connect(self.nlu_actions_uri, logger=logger) as ws:
+      async for instruction in ws:
+        logger.debug("Received instruction: %s",instruction)
+        match instruction:
+          case "get_clipboard":
+            await ws.send(pyperclip.paste())
+          case _:
+            logger.debug("Instruction not understood: %s", instruction)
+
+
   async def communicate(self):
     await asyncio.gather(
         self.listen_forever(),
         self.answer_forever(),
         self.text_forever(),
+        # self.execute_forever(),
     )
 
   def run(self):
