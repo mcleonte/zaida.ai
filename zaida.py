@@ -40,16 +40,14 @@ class ZaidaClient:
   def __init__(
       self,
       hostname="localhost",
-      nlu_port=8000,
-      stt_port=8080,
-      tts_port=8088,
+      port=8000,
       energy_threshold=150,
       output_device="pipewire",
   ):
 
-    self.nlu_uri = f"http://{hostname}:{nlu_port}"
-    self.stt_uri = f"ws://{hostname}:{stt_port}"
-    self.tts_uri = f"ws://{hostname}:{tts_port}"
+    self.nlu_uri = f"http://{hostname}:{port}/nlu"
+    self.stt_uri = f"ws://{hostname}:{port}/stt"
+    self.tts_uri = f"ws://{hostname}:{port}/tts"
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)

@@ -9,35 +9,33 @@ events {
 http {
 
   server {
-    listen 8080;
+    listen ${PUBLIC_PORT};
     access_log /var/log/nginx/access.log;
 
-    location / {
-        proxy_pass http://stt:8080;
+    location /stt {
+        proxy_pass http://stt:${STT_PORT};
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
     }
-  }
 
-  server {
-    listen 8088;
-    access_log /var/log/nginx/access.log;
-
-    location / {
-        proxy_pass http://tts:8088;
+    location /tts {
+        proxy_pass http://tts:${TTS_PORT};
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
     }
-  }
 
-  server {
-    listen 8000;
-    access_log /var/log/nginx/access.log;
-
-    location / {
-        proxy_pass http://nlu:8000/webhooks/rest/webhook;
+    location /nlu {
+        proxy_pass http://nlu:${NLU_PORT}/webhooks/rest/webhook;
     }
+
+    location /nlu-actions {
+        proxy_pass http://nlu-actions:${NLU_ACTIONS_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
   }
 }

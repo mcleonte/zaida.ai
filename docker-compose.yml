@@ -5,9 +5,14 @@ services:
     image: mcleonte/zaida-proxy
     container_name: zaida-proxy
     ports:
-      - ${NLU_PORT}:${NLU_PORT}
-      - ${STT_PORT}:${STT_PORT}
-      - ${TTS_PORT}:${TTS_PORT}
+      - ${PUBLIC_PORT}:${PUBLIC_PORT}
+    environment:
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
+      - PUBLIC_PORT
+      - STT_PORT
+      - TTS_PORT
+      - NLU_PORT
+      - NLU_ACTIONS_PORT
     # depends_on:
     #   - stt
     #   - nlu
@@ -30,6 +35,8 @@ services:
     command: run --debug --port ${NLU_PORT}
     environment:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
+      - TTS_NLU_PORT
+      - NLU_ACTIONS_PORT
     deploy:
       resources:
         reservations:
@@ -42,15 +49,15 @@ services:
     image: mcleonte/zaida-nlu-actions
     container_name: zaida-nlu-actions
     expose:
-      - 8000
+      - ${NLU_ACTIONS_PORT}
     volumes:
       - ./docker/nlu-actions/actions:/app/actions
       - cache_huggingface_hub:/app/.cache/huggingface/hub
       - /etc/localtime:/etc/localtime
-    command: --port 8000
+    command: --port ${NLU_ACTIONS_PORT}
     environment:
       - TRANSFORMERS_CACHE=/app/cache/
-      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_LEVEL
 
   stt:
     build: ./docker/stt/
@@ -61,10 +68,9 @@ services:
     volumes:
       - ./docker/stt/:/app/
     environment:
-      - PROXY_PORT=${STT_PORT}
-      - NLU_HOST=nlu
-      - NLU_PORT=${NLU_PORT}
-      - LOG_LEVEL=${LOG_LEVEL}
+      - STT_PORT
+      - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
+      - LOG_LEVEL
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
@@ -84,14 +90,14 @@ services:
     image: mcleonte/zaida-tts
     container_name: zaida-tts
     expose:
-      - ${NLU_PORT}
+      - ${TTS_NLU_PORT}
       - ${TTS_PORT}
     volumes:
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
-      - PROXY_PORT=${TTS_PORT}
-      - LOG_LEVEL=${LOG_LEVEL}
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${NLU_PORT} --cuda
+      - TTS_PORT
+      - LOG_LEVEL
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${TTS_NLU_PORT} --cuda
     deploy:
       resources:
         reservations:

@@ -13,10 +13,8 @@ import numpy as np
 import torch
 import whisper
 
-PROXY_PORT = os.environ["PROXY_PORT"]
-NLU_HOST = os.environ["NLU_HOST"]
-NLU_PORT = os.environ["NLU_PORT"]
-NLU_URI = f"http://{NLU_HOST}:{NLU_PORT}/webhooks/callback/webhook"
+STT_PORT = os.environ["STT_PORT"]
+NLU_URI = os.environ["NLU_URI"]
 
 MODEL_NAME = os.environ["MODEL_NAME"] or "small.en"
 MODEL_PATH = os.environ["MODEL_PATH"] or "/app/models/"
@@ -61,7 +59,7 @@ async def serve(websocket):
 
 
 async def main():
-  async with websockets.serve(serve, "0.0.0.0", PROXY_PORT, logger=logger):
+  async with websockets.serve(serve, "0.0.0.0", STT_PORT, logger=logger):
     await asyncio.Future()
 
 

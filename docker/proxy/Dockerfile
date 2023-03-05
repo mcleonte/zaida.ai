@@ -1,3 +1,3 @@
 FROM nginx:alpine-slim
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf.template /etc/nginx/templates/

@@ -70,7 +70,7 @@ def main(argv=None):
         await asyncio.gather(
             asyncio.create_task(hypercorn.asyncio.serve(app, hyp_config)),
             asyncio.create_task(
-                serve_redirect_websocket(os.environ["PROXY_PORT"])),
+                serve_redirect_websocket(os.environ["TTS_PORT"])),
         )
 
       asyncio.run(start_tasks())
