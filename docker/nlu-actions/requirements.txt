@@ -2,7 +2,6 @@ arrow
 geopy
 timezonefinder
 countryinfo
-pyperclip
 beautifulsoup4
 transformers
 wikipedia
