@@ -30,7 +30,7 @@ class ActionMultimodalPipeline(Action):
     parsed = urlparse(url)
     return all([parsed.scheme, parsed.netloc])
 
-  def get_text_from_copied_source(self):
+  def get_text_from_clipboard(self):
 
     async def get_clipboard():
       await websocket.send("get_clipboard")
@@ -91,14 +91,14 @@ class ActionMultimodalPipeline(Action):
 
       match step.get("input"):
         case "link":
-          pipe[-1].append(self.get_text_from_copied_source())
+          pipe[-1].append(self.get_text_from_clipboard())
         case "text":
-          pipe[-1].append(self.get_text_from_copied_source())
+          pipe[-1].append(self.get_text_from_clipboard())
         case "pocket":
           raise NotImplementedError
         case None:
           if not pipe[0]:
-            pipe[-1].append(self.get_text_from_copied_source())
+            pipe[-1].append(self.get_text_from_clipboard())
 
       match step.get("action"):
         case "summarize":
