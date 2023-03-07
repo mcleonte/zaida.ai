@@ -50,6 +50,7 @@ services:
     container_name: zaida-nlu-actions
     expose:
       - ${NLU_ACTIONS_PORT}
+      - ${NLU_ACTIONS_WS_PORT}
     volumes:
       - ./docker/nlu-actions/actions:/app/actions
       - cache_huggingface_hub:/app/.cache/huggingface/hub
@@ -58,6 +59,7 @@ services:
     environment:
       - TRANSFORMERS_CACHE=/app/cache/
       - LOG_LEVEL
+      - NLU_ACTIONS_WS_PORT
 
   stt:
     build: ./docker/stt/
