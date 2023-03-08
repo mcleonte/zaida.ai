@@ -8,7 +8,6 @@ https://rasa.com/docs/rasa/custom-actions
 
 import os
 import logging
-import websockets
 
 logger = logging.getLogger("zaida.nlu_actions")
 logger.setLevel(os.environ["LOG_LEVEL"])
