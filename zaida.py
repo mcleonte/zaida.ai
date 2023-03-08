@@ -49,7 +49,7 @@ class ZaidaClient:
     self.stt_uri = f"ws://{hostname}:{port}/stt"
     self.tts_uri = f"ws://{hostname}:{port}/tts"
     self.nlu_uri = f"http://{hostname}:{port}/nlu"
-    self.nlu_actions_uri = f"http://{hostname}:{port}/nlu-actions"
+    self.nlu_actions_uri = f"ws://{hostname}:{port}/nlu-actions"
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
@@ -164,7 +164,7 @@ class ZaidaClient:
         self.listen_forever(),
         self.answer_forever(),
         self.text_forever(),
-        # self.execute_forever(),
+        self.execute_forever(),
     )
 
   def run(self):
