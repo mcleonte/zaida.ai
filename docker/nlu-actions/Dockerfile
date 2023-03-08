@@ -81,6 +81,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+COPY endpoint.py /opt/venv/lib/python3.10/site-packages/rasa_sdk/
+COPY actions actions
+
 # update permissions & change user
 RUN chgrp -R 0 /app && chmod -R g=u /app
 USER 1001
