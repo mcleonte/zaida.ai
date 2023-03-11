@@ -2,11 +2,11 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.endpoint import instruct
 
 import os
 from urllib.parse import urlparse
 import random
-import asyncio
 
 import requests
 from bs4 import BeautifulSoup
@@ -30,15 +30,10 @@ class ActionMultimodalPipeline(Action):
     parsed = urlparse(url)
     return all([parsed.scheme, parsed.netloc])
 
-  def get_text_from_clipboard(self):
-
-    async def get_clipboard():
-      await websocket.send("get_clipboard")
-      return await websocket.recv()
-
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(get_clipboard())
-    text = loop.run_until_complete(task)
+  async def get_text_from_clipboard(self):
+    logger.debug("Calling instruct('get_clipoard')")
+    text = await instruct("get_clipboard")
+    logger.debug("Instruct completed, received: %s",text)
 
     if os.path.isfile(text):
       with open(text, "r") as file:
@@ -60,7 +55,7 @@ class ActionMultimodalPipeline(Action):
       self._summarizer = pipeline("summarization",model=model)
       return self._summarizer(text)
 
-  def run(
+  async def run(
       self,
       dispatcher: CollectingDispatcher,
       tracker: Tracker,
@@ -91,14 +86,14 @@ class ActionMultimodalPipeline(Action):
 
       match step.get("input"):
         case "link":
-          pipe[-1].append(self.get_text_from_clipboard())
+          pipe[-1].append(await self.get_text_from_clipboard())
         case "text":
-          pipe[-1].append(self.get_text_from_clipboard())
+          pipe[-1].append(await self.get_text_from_clipboard())
         case "pocket":
           raise NotImplementedError
         case None:
           if not pipe[0]:
-            pipe[-1].append(self.get_text_from_clipboard())
+            pipe[-1].append(await self.get_text_from_clipboard())
 
       match step.get("action"):
         case "summarize":
