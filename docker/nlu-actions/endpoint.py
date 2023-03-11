@@ -29,57 +29,11 @@ in_queue = asyncio.Queue()
 out_queue = asyncio.Queue()
 
 
-# LOOP = [None]
-# RESULT = [None]
 async def instruct(instruction: Text) -> Text:
   logger.debug("instruct: Putting instruction in in_queue")
   in_queue.put_nowait(instruction)
   logger.debug("instruct: Waiting on result from out_queue...")
   return await out_queue.get()
-  # RESULT[0] = await out_queue.get()
-
-
-# def instruct(instruction: Text) -> Text:
-#   loop = LOOP[0]
-#   logger.debug("Creating instruct coroutine...")
-#   coro = async_instruct(instruction)
-#   logger.debug("Creating and running instruct coroutine future...")
-#   # task = asyncio.create_task(coro)
-#   future = asyncio.run_coroutine_threadsafe(coro, loop)
-#   logger.debug("Created future, returning result...")
-#   return future.result()
-
-# return RESULT[0]
-# return asyncio.run_coroutine_threadsafe(async_instruct(instruction),
-# loop).result()
-# asyncio.create_task(in_queue.put(instruction))
-# logger.debug("in_queue size: %s", in_queue.qsize())
-# logger.debug("instruct: Waiting on result from out_queue...")
-# task = asyncio.create_task(out_queue.get())
-
-# while not task.done():
-# pass
-# return task.result()
-# return RESULT[0]
-
-# return await out_queue.get()
-# loop = asyncio.get_event_loop()
-# future = asyncio.run_coroutine_threadsafe(async_get(), loop)
-# return future.result()
-# task = asyncio.create_task(async_get())
-# return task.result()
-# return asyncio.run(async_get())
-# loop = asyncio.get_event_loop()
-# return loop.run_until_complete(task)
-
-# def instruct(instruction):
-#   task = LOOP[0].create_task(async_instruct(instruction))
-#   logger.debug("task created")
-#   while not task.done():
-#     pass
-#   return task.result()
-# loop = asyncio.get_running_loop()
-# return loop.run_until_complete(async_instruct(instruction))
 
 
 def configure_cors(app: Sanic,
@@ -203,12 +157,11 @@ def create_app(
 
   @app.websocket("/websocket")
   async def send_instruction(request, ws):
-    # LOOP[0] = asyncio.get_running_loop()
     while True:
       logger.debug("endpoint: Waiting on item to be added to in_queue")
       item = await in_queue.get()
-      logger.debug("endpoint: Sending item from in_queue to client...")
-      await ws.send(item)
+      logger.debug("endpoint: Sending item '%s' from queue to client...", item)
+      await ws.send(bytes(item, encoding="utf-8"))
       logger.debug("endpoint: item sent to client, waiting for response")
       resp = await ws.recv()
       logger.debug("endpoint: Response received, addiin it to out_queue")
@@ -250,27 +203,6 @@ def run(
     protocol=WebSocketProtocol,
   )
 
-
-# async def run_websocket():
-#
-#   async def serve(websocket):
-#     await websocket.send(await in_queue.get())
-#     out_queue.put_nowait(await websocket.recv())
-#
-#   async with websockets.serve(
-#       serve,
-#       "0.0.0.0",
-#       os.environ["NLU_ACTIONS_WS_PORT"],
-#       logger=logger,
-#   ):
-#     await asyncio.Future()
-#
-
-# def run(*args, **kwargs):
-#
-#   run_sanic(*args, **kwargs)
-#   logger.info("Sanic started, staring Websocket.")
-#   asyncio.run(run_websocket())
 
 if __name__ == "__main__":
   import rasa_sdk.__main__
