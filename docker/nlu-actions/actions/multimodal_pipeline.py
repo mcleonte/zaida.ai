@@ -2,7 +2,7 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from rasa_sdk.endpoint import instruct
+from rasa_sdk.endpoint import logger, instruct
 
 import os
 from urllib.parse import urlparse
@@ -12,7 +12,6 @@ import requests
 from bs4 import BeautifulSoup
 from transformers import pipeline
 
-from actions import logger
 
 class ActionMultimodalPipeline(Action):
   """
