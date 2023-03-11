@@ -2,6 +2,7 @@
 Zaida AI client entrypoint
 """
 
+import os
 import asyncio
 import websockets
 import requests
@@ -50,6 +51,8 @@ class ZaidaClient:
     self.tts_uri = f"ws://{hostname}:{port}/tts"
     self.nlu_uri = f"http://{hostname}:{port}/nlu"
     self.nlu_actions_uri = f"ws://{hostname}:{port}/nlu-actions"
+
+    self.user = os.environ["ZAIDA_USER"]
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
@@ -134,7 +137,7 @@ class ZaidaClient:
           self.nlu_uri,
           data=json.dumps({
               "message": text,
-              "sender": "mcleonte",
+              "sender": self.user,
           }),
           timeout=None,
       )
