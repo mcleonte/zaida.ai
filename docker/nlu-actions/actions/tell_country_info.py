@@ -2,6 +2,7 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.endpoint import logger
 
 from countryinfo import CountryInfo
 
@@ -12,10 +13,10 @@ class ActionCountryInfo(Action):
     return "tell_country_info"
 
   def run(
-      self,
-      dispatcher: CollectingDispatcher,
-      tracker: Tracker,
-      domain: Dict[Text, Any],
+    self,
+    dispatcher: CollectingDispatcher,
+    tracker: Tracker,
+    domain: Dict[Text, Any],
   ) -> List[Dict[Text, Any]]:
 
     gpe = next(tracker.get_latest_entity_values("GPE"), None)
@@ -30,8 +31,8 @@ class ActionCountryInfo(Action):
     try:
       answer = getattr(country, info)()
       dispatcher.utter_message(
-          f"{info} for {gpe} "
-          f"{'are' if isinstance(answer,list) and len(answer)>1 else 'is'} "
-          f"{answer}")
+        f"{info} for {gpe} "
+        f"{'are' if isinstance(answer,list) and len(answer)>1 else 'is'} "
+        f"{answer}")
     except AttributeError:
       dispatcher.utter_message(f"Sorry, I don't know the {info} for {gpe}")

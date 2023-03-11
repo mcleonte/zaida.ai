@@ -2,10 +2,9 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.endpoint import logger
 
 import wikipedia
-
-from actions import logger
 
 
 class ActionSearchWikipedia(Action):
@@ -15,10 +14,10 @@ class ActionSearchWikipedia(Action):
     return "search_wikipedia"
 
   def run(
-      self,
-      dispatcher: CollectingDispatcher,
-      tracker: Tracker,
-      domain: Dict[Text, Any],
+    self,
+    dispatcher: CollectingDispatcher,
+    tracker: Tracker,
+    domain: Dict[Text, Any],
   ) -> List[Dict[Text, Any]]:
 
     term = next(tracker.get_latest_entity_values("wiki_search_term"), None)

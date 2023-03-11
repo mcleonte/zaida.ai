@@ -2,6 +2,7 @@ from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.endpoint import logger
 
 import arrow
 from geopy.geocoders import Nominatim
@@ -18,16 +19,16 @@ class ActionTellTime(Action):
     geolocator = Nominatim(user_agent="geoapiExercises")
     location = geolocator.geocode(place)
     timezone = TimezoneFinder().timezone_at(
-        lng=location.longitude,
-        lat=location.latitude,
+      lng=location.longitude,
+      lat=location.latitude,
     )
     return arrow.utcnow().to(timezone).format("HH:mm")
 
   def run(
-      self,
-      dispatcher: CollectingDispatcher,
-      tracker: Tracker,
-      domain: Dict[Text, Any],
+    self,
+    dispatcher: CollectingDispatcher,
+    tracker: Tracker,
+    domain: Dict[Text, Any],
   ) -> List[Dict[Text, Any]]:
 
     place = next(tracker.get_latest_entity_values("GPE"), None)
