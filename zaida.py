@@ -52,7 +52,7 @@ class ZaidaClient:
     self.nlu_uri = f"http://{hostname}:{port}/nlu"
     self.nlu_actions_uri = f"ws://{hostname}:{port}/nlu-actions"
 
-    self.user = os.environ["ZAIDA_USER"]
+    self.user = os.environ["USER"]
 
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
