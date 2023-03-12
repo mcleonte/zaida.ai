@@ -23,13 +23,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.environ["LOG_LEVEL"])
 logger.addHandler(logging.StreamHandler())
 
-in_queue = asyncio.Queue()
-out_queue = asyncio.Queue()
+# in_queue = asyncio.Queue()
+# out_queue = asyncio.Queue()
+queue = {"in": None, "out": None}
 
 
 async def instruct(instruction: Text) -> Text:
-  in_queue.put_nowait(instruction)
-  return await out_queue.get()
+  queue["in"].put_nowait(instruction)
+  return await queue["out"].get()
 
 
 def configure_cors(app: Sanic,
@@ -153,10 +154,15 @@ def create_app(
 
   @app.websocket("/websocket")
   async def send_instruction(request, ws):
+    queue["in"] = asyncio.Queue()
+    queue["out"] = asyncio.Queue()
+
     while True:
-      await ws.send(await in_queue.get())
+      item = await queue["in"].get()
+      logger.debug("Received instruction from in_queue: %s", item)
+      await ws.send(item)
       logger.debug("endpoint: Instruction from in_queue sent to client.")
-      out_queue.put_nowait(await ws.recv())
+      queue["out"].put_nowait(await ws.recv())
       logger.debug("endpoint: Added response from client to out_queue.")
 
   return app
@@ -191,7 +197,6 @@ def run(
     port,
     ssl=ssl_context,
     workers=utils.number_of_sanic_workers(),
-    debug=True,
   )
 
 
