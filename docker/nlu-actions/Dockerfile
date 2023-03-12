@@ -1,4 +1,3 @@
-
 FROM python:3.10.10-slim as base
 
 # hadolint ignore=DL3005,DL3008
