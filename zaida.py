@@ -16,7 +16,7 @@ import pyperclip
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.client")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Supress ALSA warnings and errors from terminal.
 # https://stackoverflow.com/questions/7088672#answer-13453192
@@ -145,11 +145,8 @@ class ZaidaClient:
   async def execute_forever(self):
 
     async with websockets.connect(self.nlu_actions_uri, logger=logger) as ws:
-      logger.info("Connected to nlu-actions websocket")
-      while True:
-        logger.debug("Waiting for instruction...")
-        instruction = await ws.recv()
-      # async for instruction in ws:
+      logger.debug("Connected to nlu-actions websocket")
+      async for instruction in ws:
         logger.debug("Received instruction: %s",instruction)
         match instruction:
           case "get_clipboard":
