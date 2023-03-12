@@ -54,11 +54,11 @@ services:
       - ${NLU_ACTIONS_PORT}
     volumes:
       - ./docker/nlu-actions/actions:/app/actions
-      - cache_huggingface_hub:/app/.cache/huggingface/hub
+      - nlu_actions_cache:/app/.cache/
       - /etc/localtime:/etc/localtime
     command: --port ${NLU_ACTIONS_PORT}
     environment:
-      - TRANSFORMERS_CACHE=/app/cache/
+      - XDG_CACHE_HOME=/app/.cache/
       - LOG_LEVEL
 
   stt:
@@ -108,6 +108,6 @@ services:
               count: 1
 
 volumes:
-  cache_huggingface_hub:
+  nlu_actions_cache:
   mimic3_voices:
   spacy_models:
