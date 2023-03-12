@@ -1,5 +1,4 @@
 import asyncio
-import queue
 import argparse
 import logging
 import os
@@ -10,7 +9,6 @@ from typing import List, Text, Union, Optional, Any
 from ssl import SSLContext
 
 from sanic import Sanic, response
-from sanic.server.protocols.websocket_protocol import WebSocketProtocol
 from sanic.response import HTTPResponse
 from sanic.request import Request
 from sanic_cors import CORS
@@ -30,9 +28,7 @@ out_queue = asyncio.Queue()
 
 
 async def instruct(instruction: Text) -> Text:
-  logger.debug("instruct: Putting instruction in in_queue")
   in_queue.put_nowait(instruction)
-  logger.debug("instruct: Waiting on result from out_queue...")
   return await out_queue.get()
 
 
@@ -158,15 +154,10 @@ def create_app(
   @app.websocket("/websocket")
   async def send_instruction(request, ws):
     while True:
-      logger.debug("endpoint: Waiting on item to be added to in_queue")
-      item = await in_queue.get()
-      logger.debug("endpoint: Sending item '%s' from queue to client...", item)
-      await ws.send(bytes(item, encoding="utf-8"))
-      logger.debug("endpoint: item sent to client, waiting for response")
-      resp = await ws.recv()
-      logger.debug("endpoint: Response received, addiin it to out_queue")
-      out_queue.put_nowait(resp)
-      logger.debug("endpoint: Client response added to out_queue")
+      await ws.send(await in_queue.get())
+      logger.debug("endpoint: Instruction from in_queue sent to client.")
+      out_queue.put_nowait(await ws.recv())
+      logger.debug("endpoint: Added response from client to out_queue.")
 
   return app
 
@@ -200,7 +191,7 @@ def run(
     port,
     ssl=ssl_context,
     workers=utils.number_of_sanic_workers(),
-    protocol=WebSocketProtocol,
+    debug=True,
   )
 
 
