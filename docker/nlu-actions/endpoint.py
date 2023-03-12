@@ -23,8 +23,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.environ["LOG_LEVEL"])
 logger.addHandler(logging.StreamHandler())
 
-# in_queue = asyncio.Queue()
-# out_queue = asyncio.Queue()
 queue = {"in": None, "out": None}
 
 
