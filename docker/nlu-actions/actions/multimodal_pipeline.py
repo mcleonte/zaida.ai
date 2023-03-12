@@ -8,6 +8,7 @@ import os
 from urllib.parse import urlparse
 import random
 
+import aiohttp
 import requests
 from bs4 import BeautifulSoup
 from transformers import pipeline
@@ -38,7 +39,9 @@ class ActionMultimodalPipeline(Action):
       with open(text, "r") as file:
         return file.read()
     if self.is_valid_url(text):
-      soup = BeautifulSoup(requests.get(text, timeout=10), "html.parser")
+      resp = requests.get(text, timeout=10).text
+      logger.debug(resp)
+      soup = BeautifulSoup(resp, "html.parser")
       return "\n\n".join([
           soup.find("title").get_text(),
           soup.find("body").get_text(),
@@ -48,11 +51,11 @@ class ActionMultimodalPipeline(Action):
   def summarize(self, text:str)->str:
     logger.debug("Summarizing text...")
     try:
-      return self._summarizer(text)
+      return self._summarizer(text,max_length=len(text)//10)
     except AttributeError:
       model = "philschmid/flan-t5-base-samsum"
       self._summarizer = pipeline("summarization",model=model)
-      return self._summarizer(text)
+      return self._summarizer(text,max_length=len(text)//10)
 
   async def run(
       self,
@@ -71,7 +74,7 @@ class ActionMultimodalPipeline(Action):
         steps[group]
       except IndexError:
         while len(steps) <= group:
-          steps.append(dict())
+          steps.append({})
       steps[group][entity["entity"]] = entity["value"]
 
     # default_input_type = "clipboard_link"
@@ -97,11 +100,13 @@ class ActionMultimodalPipeline(Action):
       match step.get("action"):
         case "summarize":
           logger.debug("Summarizing the following text(s):\n%s",pipe[-1])
-          pipe.append(list(map(self.summarize, pipe[-1])))
+          pipe.append([x["summary_text"] for x in list(map(self.summarize,pipe[-1]))[0]])
         case "transcribe":
           raise NotImplementedError
         case "translate":
           raise NotImplementedError
+
+      logger.debug(pipe[-1])
 
       match step.get("output"):
         case "read":
@@ -121,7 +126,9 @@ class ActionMultimodalPipeline(Action):
             file.write(pipe)
 
     if "output" not in steps[-1]:
-      map(dispatcher.utter_message, pipe[-1])
+      for out in pipe[-1]:
+        logger.debug("Uttering message: %s",out)
+        dispatcher.utter_message(out)
     else:
       dispatcher.utter_message(random.choice(["All done.","Done.","Finished."]))
 
