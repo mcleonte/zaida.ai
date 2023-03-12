@@ -45,7 +45,9 @@ services:
               count: 1
 
   nlu-actions:
-    build: ./docker/nlu-actions/
+    build:
+      context: ./docker/nlu-actions/
+      dockerfile: gpu.Dockerfile
     image: mcleonte/zaida-nlu-actions
     container_name: zaida-nlu-actions
     expose:
