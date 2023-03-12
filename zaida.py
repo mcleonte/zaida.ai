@@ -5,9 +5,8 @@ Zaida AI client entrypoint
 import os
 import asyncio
 import websockets
-import requests
+import aiohttp
 import logging
-import json
 from datetime import datetime
 from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
@@ -61,7 +60,7 @@ class ZaidaClient:
 
     self.mic = sr.Microphone(sample_rate=16000)
     self.rec = sr.Recognizer()
-    self.rec.pause_threshold = 1
+    self.rec.pause_threshold = .6
     self.queue = asyncio.Queue()
 
     if energy_threshold is None:
@@ -129,32 +128,28 @@ class ZaidaClient:
   async def text_forever(self):
 
     loop = asyncio.get_running_loop()
+    data = { "message": None, "sender": self.user }
 
-    while True:
-      text = await loop.run_in_executor(None, lambda: input("You: "))
-      print(f"[{datetime.now()}] You: {text}")
-      resp = requests.post(
-          self.nlu_uri,
-          data=json.dumps({
-              "message": text,
-              "sender": self.user,
-          }),
-          timeout=None,
-      )
-      if not resp.ok:
-        print(resp.status)
-        continue
-      resp = resp.json()
-      try:
-        print(f"[{datetime.now()}] Zaida: {resp[0]['text']}")
-      except IndexError:
-        print(resp)
+    async with aiohttp.ClientSession() as session:
+      while True:
+        text = await loop.run_in_executor(None, lambda: input("You: "))
+        data["message"] = text
+        print(f"[{datetime.now()}] You: {text}")
+        async with session.post(self.nlu_uri, json=data) as resp:
+          resp = await resp.json()
+        try:
+          print(f"[{datetime.now()}] Zaida: {resp[0]['text']}")
+        except IndexError:
+          print(resp)
 
   async def execute_forever(self):
 
     async with websockets.connect(self.nlu_actions_uri, logger=logger) as ws:
       logger.info("Connected to nlu-actions websocket")
-      async for instruction in ws:
+      while True:
+        logger.debug("Waiting for instruction...")
+        instruction = await ws.recv()
+      # async for instruction in ws:
         logger.debug("Received instruction: %s",instruction)
         match instruction:
           case "get_clipboard":
