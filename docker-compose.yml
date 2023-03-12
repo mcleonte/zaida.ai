@@ -12,7 +12,7 @@ services:
       - STT_PORT
       - TTS_PORT
       - NLU_PORT
-      - NLU_ACTIONS_PORT
+      - ACTIONS_PORT
     # depends_on:
     #   - stt
     #   - nlu
@@ -36,7 +36,7 @@ services:
     environment:
       - SQLALCHEMY_SILENCE_UBER_WARNING=1
       - TTS_NLU_PORT
-      - NLU_ACTIONS_PORT
+      - ACTIONS_PORT
     deploy:
       resources:
         reservations:
@@ -44,19 +44,19 @@ services:
             - capabilities: ["gpu"]
               count: 1
 
-  nlu-actions:
+  actions:
     build:
-      context: ./docker/nlu-actions/
+      context: ./docker/actions/
       dockerfile: gpu.Dockerfile
-    image: mcleonte/zaida-nlu-actions
-    container_name: zaida-nlu-actions
+    image: mcleonte/zaida-actions
+    container_name: zaida-actions
     expose:
-      - ${NLU_ACTIONS_PORT}
+      - ${ACTIONS_PORT}
     volumes:
-      - ./docker/nlu-actions/actions:/app/actions
-      - nlu_actions_cache:/app/.cache/
+      - ./docker/actions/actions:/app/actions
+      - actions_cache:/app/.cache/
       - /etc/localtime:/etc/localtime
-    command: --port ${NLU_ACTIONS_PORT}
+    command: --port ${ACTIONS_PORT}
     environment:
       - XDG_CACHE_HOME=/app/.cache/
       - LOG_LEVEL
@@ -108,6 +108,6 @@ services:
               count: 1
 
 volumes:
-  nlu_actions_cache:
+  actions_cache:
   mimic3_voices:
   spacy_models:

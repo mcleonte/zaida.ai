@@ -49,7 +49,7 @@ class ZaidaClient:
     self.stt_uri = f"ws://{hostname}:{port}/stt"
     self.tts_uri = f"ws://{hostname}:{port}/tts"
     self.nlu_uri = f"http://{hostname}:{port}/nlu"
-    self.nlu_actions_uri = f"ws://{hostname}:{port}/nlu-actions"
+    self.actions_uri = f"ws://{hostname}:{port}/actions"
 
     self.user = os.environ["USER"]
 
@@ -144,8 +144,8 @@ class ZaidaClient:
 
   async def execute_forever(self):
 
-    async with websockets.connect(self.nlu_actions_uri, logger=logger) as ws:
-      logger.debug("Connected to nlu-actions websocket")
+    async with websockets.connect(self.actions_uri, logger=logger) as ws:
+      logger.debug("Connected to actions websocket")
       async for instruction in ws:
         logger.debug("Received instruction: %s",instruction)
         match instruction:
