@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 import random
 
 import aiohttp
-import requests
 from bs4 import BeautifulSoup
 from transformers import pipeline
 
@@ -19,6 +18,8 @@ class ActionMultimodalPipeline(Action):
   Text processing action.
   Supports any combination of summarization, TTS and outputing to file.
   """
+
+  http_session = aiohttp.ClientSession()
 
   def name(self) -> Text:
     return "multimodal_pipeline"
@@ -30,32 +31,41 @@ class ActionMultimodalPipeline(Action):
     parsed = urlparse(url)
     return all([parsed.scheme, parsed.netloc])
 
+  async def get_html(self, url):
+    async with self.http_session.get(url) as resp:
+      text = await resp.text()
+    await self.http_session.close()
+    return text
+
+
   async def get_text_from_clipboard(self):
     logger.debug("Calling instruct('get_clipoard')")
-    text = await instruct("get_clipboard")
-    logger.debug("Instruct completed, received: %s",text)
+    clip = await instruct("get_clipboard")
+    logger.debug("Instruct completed, received: %s", clip)
 
-    if os.path.isfile(text):
-      with open(text, "r") as file:
+    if os.path.isfile(clip):
+      with open(clip, "r") as file:
         return file.read()
-    if self.is_valid_url(text):
-      resp = requests.get(text, timeout=10).text
+
+    if self.is_valid_url(clip):
+      resp = await self.get_html(clip)
       logger.debug(resp)
       soup = BeautifulSoup(resp, "html.parser")
       return "\n\n".join([
           soup.find("title").get_text(),
           soup.find("body").get_text(),
       ])
-    return text
+
+    return clip
 
   def summarize(self, text:str)->str:
     logger.debug("Summarizing text...")
     try:
-      return self._summarizer(text,max_length=len(text)//10)
+      return self._summarizer(text,max_length=len(text)//5)
     except AttributeError:
       model = "philschmid/flan-t5-base-samsum"
       self._summarizer = pipeline("summarization",model=model)
-      return self._summarizer(text,max_length=len(text)//10)
+      return self._summarizer(text,max_length=len(text)//5)
 
   async def run(
       self,
