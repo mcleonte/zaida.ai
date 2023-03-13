@@ -13,10 +13,10 @@ services:
       - TTS_PORT
       - NLU_PORT
       - ACTIONS_PORT
-    # depends_on:
-    #   - stt
-    #   - nlu
-    #   - tts
+    depends_on:
+      - stt
+      - nlu
+      - tts
 
   nlu:
     build: ./docker/nlu/
@@ -81,9 +81,9 @@ services:
           devices:
             - capabilities: ["gpu"]
               count: 1
-    # depends_on:
-    #   nlu:
-    #     condition: service_healthy
+    depends_on:
+      nlu:
+        condition: service_healthy
 
   tts:
     build:
