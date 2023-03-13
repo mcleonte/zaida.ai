@@ -147,7 +147,7 @@ class ZaidaClient:
     async with websockets.connect(self.actions_uri, logger=logger) as ws:
       logger.debug("Connected to actions websocket")
       async for instruction in ws:
-        logger.debug("Received instruction: %s",instruction)
+        logger.debug("Received instruction: %s", instruction)
         match instruction:
           case "get_clipboard":
             await ws.send(pyperclip.paste())
