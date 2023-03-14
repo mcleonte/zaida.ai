@@ -97,7 +97,7 @@ services:
   tts:
     build:
       context: ./docker/tts
-      dockerfile: gpu.Dockerfile
+      dockerfile: ${DEVICE}.Dockerfile
     image: mcleonte/zaida-tts
     container_name: zaida-tts
     expose:
