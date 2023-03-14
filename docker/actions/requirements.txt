@@ -1,3 +1,4 @@
+rasa-sdk==3.4.0
 aiohttp
 arrow
 geopy

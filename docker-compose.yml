@@ -13,10 +13,10 @@ services:
       - TTS_PORT
       - NLU_PORT
       - ACTIONS_PORT
-    depends_on:
-      - stt
-      - nlu
-      - tts
+    # depends_on:
+    #   - stt
+    #   - nlu
+    #   - tts
 
   nlu:
     build: ./docker/nlu/
@@ -47,7 +47,7 @@ services:
   actions:
     build:
       context: ./docker/actions/
-      dockerfile: gpu.Dockerfile
+      dockerfile: ${DEVICE}.Dockerfile
     image: mcleonte/zaida-actions
     container_name: zaida-actions
     expose:
@@ -60,6 +60,13 @@ services:
     environment:
       - XDG_CACHE_HOME=/app/.cache/
       - LOG_LEVEL
+      - DEVICE
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
 
   stt:
     build: ./docker/stt/
@@ -81,9 +88,9 @@ services:
           devices:
             - capabilities: ["gpu"]
               count: 1
-    depends_on:
-      nlu:
-        condition: service_healthy
+    # depends_on:
+    #   nlu:
+    #     condition: service_healthy
 
   tts:
     build:

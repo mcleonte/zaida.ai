@@ -21,6 +21,10 @@ class ActionMultimodalPipeline(Action):
 
   http_session = aiohttp.ClientSession()
 
+  _summarizer = pipeline("summarization",
+                         model="philschmid/flan-t5-base-samsum",
+                         device=0 if os.environ["DEVICE"]=="gpu" else -1,)
+
   def name(self) -> Text:
     return "multimodal_pipeline"
 
@@ -64,7 +68,7 @@ class ActionMultimodalPipeline(Action):
       return self._summarizer(text,max_length=len(text)//5)
     except AttributeError:
       model = "philschmid/flan-t5-base-samsum"
-      self._summarizer = pipeline("summarization",model=model)
+      self._summarizer = pipeline("summarization",model=model,device=0)
       return self._summarizer(text,max_length=len(text)//5)
 
   async def run(

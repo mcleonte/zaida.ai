@@ -1,9 +1,10 @@
-FROM python:3.10-slim AS pytorch-gpu
+FROM python:3.10-slim AS pytorch-cpu
 
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir torch torchvision torchaudio
+ && pip install --no-cache-dir torch torchvision torchaudio \
+        --extra-index-url https://download.pytorch.org/whl/cpu
 
-FROM pytorch-gpu
+FROM pytorch-cpu
 
 WORKDIR /app
 
