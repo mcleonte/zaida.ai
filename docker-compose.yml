@@ -69,7 +69,9 @@ services:
               count: 1
 
   stt:
-    build: ./docker/stt/
+    build:
+      context: ./docker/stt/
+      dockerfile: ${DEVICE}.Dockerfile
     image: mcleonte/zaida-stt
     container_name: zaida-stt
     expose:
