@@ -18,7 +18,9 @@ NLU_URI = os.environ["NLU_URI"]
 
 MODEL_NAME = os.environ["MODEL_NAME"] or "small.en"
 MODEL_PATH = os.environ["MODEL_PATH"] or "/app/models/"
+
 FP16 = torch.cuda.is_available()
+DEVICE = "cuda" if FP16 else "cpu"
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.stt")
@@ -26,7 +28,7 @@ logger.setLevel(os.environ["LOG_LEVEL"])
 logger.addHandler(logging.StreamHandler())
 
 logger.info("Loading model '%s'", MODEL_NAME)
-model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH)
+model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH).to(DEVICE)
 logger.info("Model loaded.")
 
 
