@@ -1,17 +1,41 @@
-FROM python:3.10-slim AS pytorch-gpu
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir torch
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-FROM pytorch-gpu
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /app
+RUN echo "Dir::Cache var/cache/apt/${TARGETARCH}${TARGETVARIANT};" > /etc/apt/apt.conf.d/01cache
 
-RUN pip install --no-cache-dir \
-  mycroft-mimic3-tts \
-  onnxruntime-gpu \
-  websockets
+RUN --mount=type=cache,id=apt-run,target=/var/cache/apt \
+    mkdir -p /var/cache/apt/${TARGETARCH}${TARGETVARIANT}/archives/partial && \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        python3 python3-pip python3-venv \
+        ca-certificates libespeak-ng1 \
+        git
 
-COPY __main__.py app.py /usr/local/lib/python3.10/site-packages/mimic3_http/
+RUN useradd -ms /bin/bash mimic3
 
-ENTRYPOINT ["python", "-m", "mimic3_http", "--cuda"]
+USER mimic3
+
+RUN mkdir -p /home/mimic3/.local/share/mycroft/mimic3/voices/
+
+WORKDIR /home/mimic3/app
+
+RUN git clone https://github.com/MycroftAI/mimic3.git \
+ && mv mimic3/* . \
+ && rm -r mimic3
+
+RUN sed -i 's/onnxruntime/onnxruntime-gpu/' ./requirements.txt \
+ && echo "websockets" >> ./requirements.txt
+
+RUN --mount=type=cache,id=pip-requirements,target=/root/.cache/pip \
+    ./install.sh
+
+COPY __main__.py app.py mimic3_http/
+
+ENTRYPOINT ["/home/mimic3/app/.venv/bin/python3", "-m", "mimic3_http"]
+
+CMD ["--cuda"]
