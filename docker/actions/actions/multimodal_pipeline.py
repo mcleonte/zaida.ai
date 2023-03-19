@@ -64,12 +64,7 @@ class ActionMultimodalPipeline(Action):
 
   def summarize(self, text:str)->str:
     logger.debug("Summarizing text...")
-    try:
-      return self._summarizer(text,max_length=len(text)//5)
-    except AttributeError:
-      model = "philschmid/flan-t5-base-samsum"
-      self._summarizer = pipeline("summarization",model=model,device=0)
-      return self._summarizer(text,max_length=len(text)//5)
+    return self._summarizer(text,max_length=len(text)//5)
 
   async def run(
       self,
