@@ -1,4 +1,4 @@
-from typing import Any, Text, Dict, List
+from typing import Any, Text, Dict, List, Optional
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
@@ -11,6 +11,31 @@ import random
 import aiohttp
 from bs4 import BeautifulSoup
 from transformers import pipeline
+
+
+class Pipe:
+
+  def __init__(self):
+    self._pipe = []
+
+  def add(self, partial:Any):
+    self._pipe[-1].append(partial)
+
+  def new_step(self, step:Optional[List]=None):
+    if step is None:
+      step = []
+    self._pipe.append(step)
+
+  def curr_step(self):
+    return self._pipe[-1]
+
+  def prev_step(self):
+    return self._pipe[-2]
+
+  def empty(self):
+    return bool(self._pipe)
+
+
 
 
 class ActionMultimodalPipeline(Action):
@@ -91,36 +116,38 @@ class ActionMultimodalPipeline(Action):
 
     logger.debug(steps)
 
-    pipe = [[]]
+    pipe = Pipe()
 
     for step in steps:
+      pipe.new_step()
 
       match step.get("input"):
         case "link":
-          pipe[-1].append(await self.get_text_from_clipboard())
+          pipe.add(await self.get_text_from_clipboard())
         case "text":
-          pipe[-1].append(await self.get_text_from_clipboard())
+          pipe.add(await self.get_text_from_clipboard())
         case "pocket":
           raise NotImplementedError
         case None:
-          if not pipe[0]:
-            pipe[-1].append(await self.get_text_from_clipboard())
+          if pipe.empty():
+            pipe.add(await self.get_text_from_clipboard())
 
       match step.get("action"):
         case "summarize":
           logger.debug("Summarizing the following text(s):\n%s",pipe[-1])
-          pipe.append([x["summary_text"] for x in list(map(self.summarize,pipe[-1]))[0]])
+          pipe.new_step([x["summary_text"] for x in
+                         list(map(self.summarize, pipe.curr_step()))[0]])
         case "transcribe":
           raise NotImplementedError
         case "translate":
           raise NotImplementedError
 
-      logger.debug(pipe[-1])
+      logger.debug(pipe.curr_step())
 
       match step.get("output"):
         case "read":
-          logger.debug("Reading: \n%s",pipe[-1])
-          map(dispatcher.utter_message, pipe[-1])
+          logger.debug("Reading: \n%s",pipe.curr_step())
+          map(dispatcher.utter_message, pipe.curr_step())
         case "drive":
           raise NotImplementedError
         case "pocket":
@@ -132,10 +159,10 @@ class ActionMultimodalPipeline(Action):
         case _:
           path = self.path_from(step["output"])
           with open(path, "rb") as file:
-            file.write(pipe)
+            file.write(pipe.curr_step())
 
     if "output" not in steps[-1]:
-      for out in pipe[-1]:
+      for out in pipe.curr_step():
         logger.debug("Uttering message: %s",out)
         dispatcher.utter_message(out)
     else:
