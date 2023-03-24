@@ -17,6 +17,8 @@ class Pipe:
 
   def __init__(self):
     self._pipe = []
+    self.curr_step = None
+    self.prev_step = None
 
   def add(self, partial:Any):
     self._pipe[-1].append(partial)
@@ -25,12 +27,7 @@ class Pipe:
     if step is None:
       step = []
     self._pipe.append(step)
-
-  def curr_step(self):
-    return self._pipe[-1]
-
-  def prev_step(self):
-    return self._pipe[-2]
+    self.prev_step, self.curr_step = self.curr_step, self._pipe[-1]
 
   def empty(self):
     return bool(self._pipe)
@@ -136,18 +133,18 @@ class ActionMultimodalPipeline(Action):
         case "summarize":
           logger.debug("Summarizing the following text(s):\n%s",pipe[-1])
           pipe.new_step([x["summary_text"] for x in
-                         list(map(self.summarize, pipe.curr_step()))[0]])
+                         list(map(self.summarize, pipe.curr_step))[0]])
         case "transcribe":
           raise NotImplementedError
         case "translate":
           raise NotImplementedError
 
-      logger.debug(pipe.curr_step())
+      logger.debug(pipe.curr_step)
 
       match step.get("output"):
         case "read":
-          logger.debug("Reading: \n%s",pipe.curr_step())
-          map(dispatcher.utter_message, pipe.curr_step())
+          logger.debug("Reading: \n%s",pipe.curr_step)
+          map(dispatcher.utter_message, pipe.curr_step)
         case "drive":
           raise NotImplementedError
         case "pocket":
@@ -159,10 +156,10 @@ class ActionMultimodalPipeline(Action):
         case _:
           path = self.path_from(step["output"])
           with open(path, "rb") as file:
-            file.write(pipe.curr_step())
+            file.write(pipe.curr_step)
 
     if "output" not in steps[-1]:
-      for out in pipe.curr_step():
+      for out in pipe.curr_step:
         logger.debug("Uttering message: %s",out)
         dispatcher.utter_message(out)
     else:
