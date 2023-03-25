@@ -55,13 +55,25 @@ class ActionMultimodalPipeline(Action):
 
   def is_valid_url(self, url: str):
     parsed = urlparse(url)
-    return all([parsed.scheme, parsed.netloc])
+    if parsed.netloc:
+      return parsed
+    return False
 
   async def get_html(self, url):
     async with self.http_session.get(url) as resp:
-      text = await resp.text()
+      html = await resp.text()
     await self.http_session.close()
-    return text
+    return html
+
+  def parse_html(self, html, parsed_url):
+    soup = BeautifulSoup(html, "html.parser")
+    match parsed_url.netloc:
+      case "linkedin.com":
+        to_find = [("div", {"class":"core-rail"})]
+      case _:
+        to_find = [("title",), ("body",)]
+
+    return "\n\n".join([soup.find(*args).get_text().strip() for args in to_find])
 
 
   async def get_text_from_clipboard(self):
@@ -73,14 +85,9 @@ class ActionMultimodalPipeline(Action):
       with open(clip, "r") as file:
         return file.read()
 
-    if self.is_valid_url(clip):
-      resp = await self.get_html(clip)
-      logger.debug(resp)
-      soup = BeautifulSoup(resp, "html.parser")
-      return "\n\n".join([
-          soup.find("title").get_text(),
-          soup.find("body").get_text(),
-      ])
+    if (parsed_url := self.is_valid_url(clip)):
+      html = await self.get_html(clip)
+      return self.parse_html(html, parsed_url)
 
     return clip
 
