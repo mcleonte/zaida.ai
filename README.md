@@ -18,7 +18,9 @@ Details on current integrations:
    - asynchronous voice recording (client side) and transcription (server side) with [asyncio](https://docs.python.org/3/library/asyncio.html) library
 - offline Text-to-Speech with [MycroftAI Mimic3](https://github.com/MycroftAI/mimic3)
 - offline Natural Language Understanding with [Rasa Open Source](https://github.com/RasaHQ/rasa) and [SpaCy](https://spacy.io/models/en#en_core_web_lg)
+
 ## Features
+
 - real-time Speech-To-Speech interaction
 - text summarization
 - ask for the current time in any country / city / state supported by SpaCy, or
@@ -50,10 +52,9 @@ feel real-time.
 This is still a very new project, as I've just almost finished polishing the STT and TTS
 integrations.
 However, there isn't much to go with on the NLU side yet, which I want to focus
-on next. So far I plan on developing features for:
+on next. So far I plan on developing features also for:
 - daily tasks and workflows
 - window & environment management
 - filesystem & browser navigation
-- text summarization
 
 and many other will follow.
