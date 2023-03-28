@@ -82,6 +82,7 @@ services:
       - STT_PORT
       - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
       - LOG_LEVEL
+      - ZAIDA_USER
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
