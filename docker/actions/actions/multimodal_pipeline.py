@@ -14,6 +14,9 @@ from transformers import pipeline
 
 
 class Pipe:
+  """
+  Utility class for handling intermediary outputs between pipeline steps.
+  """
 
   def __init__(self):
     self._pipe = []
