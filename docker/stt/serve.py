@@ -48,7 +48,7 @@ def send(text: str):
       NLU_URI,
       json.dumps({
           "message": text,
-          "sender": "mcleonte",
+          "sender": os.environ["ZAIDA_USER"],
       }),
       stream=True,
       timeout=None,
