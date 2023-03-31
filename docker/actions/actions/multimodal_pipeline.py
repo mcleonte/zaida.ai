@@ -23,16 +23,16 @@ class Pipe:
     self.curr_step = None
     self.prev_step = None
 
-  def add(self, partial:Any):
+  def add(self, partial:Any) -> None:
     self._pipe[-1].append(partial)
 
-  def new_step(self, step:Optional[List]=None):
+  def new_step(self, step:Optional[List]=None) -> None:
     if step is None:
       step = []
     self._pipe.append(step)
     self.prev_step, self.curr_step = self.curr_step, self._pipe[-1]
 
-  def empty(self):
+  def empty(self) -> bool:
     return bool(self._pipe)
 
 
@@ -56,19 +56,19 @@ class ActionMultimodalPipeline(Action):
   def path_from(self, destination="home"):
     raise NotImplementedError
 
-  def is_valid_url(self, url: str):
+  def is_valid_url(self, url: str) -> bool:
     parsed = urlparse(url)
     if parsed.netloc:
       return parsed
     return False
 
-  async def get_html(self, url):
+  async def get_html(self, url) -> str:
     async with self.http_session.get(url) as resp:
       html = await resp.text()
     await self.http_session.close()
     return html
 
-  def parse_html(self, html, parsed_url):
+  def parse_html(self, html, parsed_url) -> str:
     soup = BeautifulSoup(html, "html.parser")
     match parsed_url.netloc:
       case "linkedin.com":
@@ -79,7 +79,7 @@ class ActionMultimodalPipeline(Action):
     return "\n\n".join([soup.find(*args).get_text().strip() for args in to_find])
 
 
-  async def get_text_from_clipboard(self):
+  async def get_text_from_clipboard(self) -> str:
     logger.debug("Calling instruct('get_clipoard')")
     clip = await instruct("get_clipboard")
     logger.debug("Instruct completed, received: %s", clip)
@@ -94,7 +94,7 @@ class ActionMultimodalPipeline(Action):
 
     return clip
 
-  def summarize(self, text:str)->str:
+  def summarize(self, text:str) -> str:
     logger.debug("Summarizing text...")
     return self._summarizer(text,max_length=len(text)//5)
 
