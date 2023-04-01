@@ -53,7 +53,7 @@ class ActionMultimodalPipeline(Action):
   def name(self) -> Text:
     return "multimodal_pipeline"
 
-  def path_from(self, destination="home"):
+  def path_from(self, destination="home") -> str:
     raise NotImplementedError
 
   def is_valid_url(self, url: str) -> bool:
@@ -174,4 +174,3 @@ class ActionMultimodalPipeline(Action):
         dispatcher.utter_message(out)
     else:
       dispatcher.utter_message(random.choice(["All done.","Done.","Finished."]))
-
