@@ -18,6 +18,55 @@ services:
       - nlu
       - tts
 
+  stt:
+    build:
+      context: ./docker/stt/
+      dockerfile: ${DEVICE}.Dockerfile
+    image: mcleonte/zaida-stt
+    container_name: zaida-stt
+    expose:
+      - ${STT_PORT}
+    volumes:
+      - ./docker/stt/:/app/
+    environment:
+      - STT_PORT
+      - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
+      - LOG_LEVEL
+      - ZAIDA_USER
+      - MODEL_PATH=/app/models
+      - MODEL_NAME=small.en
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
+    depends_on:
+      nlu:
+        condition: service_healthy
+
+  tts:
+    build:
+      context: ./docker/tts
+      dockerfile: ${DEVICE}.Dockerfile
+    image: mcleonte/zaida-tts
+    container_name: zaida-tts
+    expose:
+      - ${TTS_NLU_PORT}
+      - ${TTS_PORT}
+    volumes:
+      - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
+    environment:
+      - TTS_PORT
+      - LOG_LEVEL
+    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${TTS_NLU_PORT}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
+
   nlu:
     build: ./docker/nlu/
     image: mcleonte/zaida-nlu
@@ -61,55 +110,6 @@ services:
       - XDG_CACHE_HOME=/app/.cache/
       - LOG_LEVEL
       - DEVICE
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
-              count: 1
-
-  stt:
-    build:
-      context: ./docker/stt/
-      dockerfile: ${DEVICE}.Dockerfile
-    image: mcleonte/zaida-stt
-    container_name: zaida-stt
-    expose:
-      - ${STT_PORT}
-    volumes:
-      - ./docker/stt/:/app/
-    environment:
-      - STT_PORT
-      - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
-      - LOG_LEVEL
-      - ZAIDA_USER
-      - MODEL_PATH=/app/models
-      - MODEL_NAME=small.en
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
-              count: 1
-    depends_on:
-      nlu:
-        condition: service_healthy
-
-  tts:
-    build:
-      context: ./docker/tts
-      dockerfile: ${DEVICE}.Dockerfile
-    image: mcleonte/zaida-tts
-    container_name: zaida-tts
-    expose:
-      - ${TTS_NLU_PORT}
-      - ${TTS_PORT}
-    volumes:
-      - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
-    environment:
-      - TTS_PORT
-      - LOG_LEVEL
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${TTS_NLU_PORT}
     deploy:
       resources:
         reservations:
