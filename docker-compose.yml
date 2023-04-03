@@ -117,7 +117,17 @@ services:
             - capabilities: ["gpu"]
               count: 1
 
+  redis:
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel {LOG_LEVEL}
+    environment:
+      - REDIS_PORT
+      - REDIS_DB=0
+
 volumes:
   actions_cache:
   mimic3_voices:
   spacy_models:
+  redis_data:
