@@ -13,6 +13,8 @@ import numpy as np
 import torch
 import whisper
 
+ZAIDA_USER = os.environ["ZAIDA_USER"]
+
 STT_PORT = os.environ["STT_PORT"]
 NLU_URI = os.environ["NLU_URI"]
 
@@ -45,13 +47,13 @@ def transcribe(audio):
 def send(text: str):
   logger.debug("Sending text to %s: %s", NLU_URI, text)
   requests.post(
-      NLU_URI,
-      json.dumps({
-          "message": text,
-          "sender": os.environ["ZAIDA_USER"],
-      }),
-      stream=True,
-      timeout=None,
+    NLU_URI,
+    json.dumps({
+      "message": text,
+      "sender": ZAIDA_USER,
+    }),
+    stream=True,
+    timeout=None,
   )
 
 
