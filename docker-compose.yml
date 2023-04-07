@@ -74,8 +74,8 @@ services:
     user: 1000:1000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://nlu:${NLU_PORT}"]
-      interval: 5s
-      retries: 20
+      interval: 7s
+      retries: 10
     expose:
       - ${NLU_PORT}
     volumes:
