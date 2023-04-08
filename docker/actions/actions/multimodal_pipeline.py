@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from transformers import pipeline
 
 
-class Pipe:
+class _Pipe:
   """
   Utility class for handling intermediary outputs between pipeline steps.
   """
@@ -123,7 +123,7 @@ class ActionMultimodalPipeline(Action):
 
     logger.debug(steps)
 
-    pipe = Pipe()
+    pipe = _Pipe()
 
     for step in steps:
       pipe.new_step()
