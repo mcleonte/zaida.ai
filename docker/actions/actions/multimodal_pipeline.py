@@ -128,6 +128,8 @@ class ActionMultimodalPipeline(Action):
     for step in steps:
       pipe.new_step()
 
+      logger.debug("Matching input...")
+
       match step.get("input"):
         case "link":
           pipe.add(await self.get_text_from_clipboard())
@@ -139,6 +141,8 @@ class ActionMultimodalPipeline(Action):
           if pipe.empty():
             pipe.add(await self.get_text_from_clipboard())
 
+      logger.debug("Matching action...")
+
       match step.get("action"):
         case "summarize":
           logger.debug("Summarizing the following text(s):\n%s",pipe[-1])
@@ -149,7 +153,7 @@ class ActionMultimodalPipeline(Action):
         case "translate":
           raise NotImplementedError
 
-      logger.debug(pipe.curr_step)
+      logger.debug("Matching output...")
 
       match step.get("output"):
         case "read":
