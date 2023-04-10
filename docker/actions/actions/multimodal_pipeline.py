@@ -118,9 +118,6 @@ class ActionMultimodalPipeline(Action):
           steps.append({})
       steps[group][entity["entity"]] = entity["value"]
 
-    # default_input_type = "clipboard_link"
-    # default_output_type = "speech"
-
     logger.debug(steps)
 
     pipe = _Pipe()
