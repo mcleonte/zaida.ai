@@ -1,3 +1,7 @@
+"""
+Multimodal Pipeline Action module
+"""
+
 from typing import Any, Text, Dict, List, Optional
 
 from rasa_sdk import Action, Tracker
