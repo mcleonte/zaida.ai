@@ -34,6 +34,6 @@ RUN sed -i 's/onnxruntime/onnxruntime-gpu/' ./requirements.txt \
 RUN --mount=type=cache,id=pip-requirements,target=/root/.cache/pip \
     ./install.sh
 
-COPY __main__.py app.py mimic3_http/
+COPY run.sh app.py .
 
-ENTRYPOINT ["/home/mimic3/app/.venv/bin/python3", "-m", "mimic3_http", "--cuda"]
+ENTRYPOINT ["./run.sh"]
