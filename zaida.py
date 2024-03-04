@@ -8,6 +8,7 @@ import websockets
 import aiohttp
 import logging
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
 import speech_recognition as sr
@@ -46,10 +47,11 @@ class ZaidaClient:
       output_device="pipewire",
   ):
 
-    self.stt_uri = f"ws://{hostname}:{port}/stt"
-    self.tts_uri = f"ws://{hostname}:{port}/tts"
-    self.nlu_uri = f"http://{hostname}:{port}/nlu"
-    self.actions_uri = f"ws://{hostname}:{port}/actions"
+    # self.stt_uri = f"ws://{hostname}:{port}/stt"
+    # self.tts_uri = f"ws://{hostname}:{port}/tts"
+    # self.nlu_uri = f"http://{hostname}:{port}/nlu"
+    # self.actions_uri = f"ws://{hostname}:{port}/actions"
+    self.wshub_uri = f"ws://{hostname}:{port}/"
 
     self.user = os.environ["USER"]
 
@@ -89,6 +91,8 @@ class ZaidaClient:
         dtype="int16",
     )
 
+    self.executor = ThreadPoolExecutor()
+
   def calibrate(self, duration: float = 3.):
     with self.mic as source:
       logger.info("Calibrating microphone...")
@@ -96,7 +100,7 @@ class ZaidaClient:
       logger.info("Microphone calibrated to energy threshold of %s",
                   self.rec.energy_threshold)
 
-  async def listen_forever(self):
+  async def listen_forever(self, ws):
 
     loop = asyncio.get_running_loop()
 
@@ -105,7 +109,7 @@ class ZaidaClient:
                    len(raw_data := audio.get_raw_data()))
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
-    async with websockets.connect(self.stt_uri, logger=logger) as ws:
+    while True:
       self.stop_listening = self.rec.listen_in_background(self.mic, callback)
       try:
         while True:
@@ -114,54 +118,38 @@ class ZaidaClient:
           logger.debug("Audio sent to server.")
       except KeyboardInterrupt:
         self.stop_listening(wait_for_stop=False)
+        break
 
-  async def answer_forever(self):
+
+  async def hear_forever(self, ws):
 
     self.output_stream.start()
-    try:
-      async with websockets.connect(self.tts_uri, logger=logger) as ws:
-        async for bytestring in ws:
-          self.output_stream.write(bytestring)
-    except KeyboardInterrupt:
-      self.output_stream.stop()
-
-  async def text_forever(self):
-
-    loop = asyncio.get_running_loop()
-    data = { "message": None, "sender": self.user }
-
-    async with aiohttp.ClientSession() as session:
-      while True:
-        text = await loop.run_in_executor(None, lambda: input("You: "))
-        data["message"] = text
-        print(f"[{datetime.now()}] You: {text}")
-        async with session.post(self.nlu_uri, json=data) as resp:
-          resp = await resp.json()
+    while True:
+      # bytestring = await self.out_queue.get()
+      async for bytestring in ws:
         try:
-          print(f"[{datetime.now()}] Zaida: {resp[0]['text']}")
-        except IndexError:
-          print(resp)
-
-  async def execute_forever(self):
-
-    async with websockets.connect(self.actions_uri, logger=logger) as ws:
-      logger.debug("Connected to actions websocket")
-      async for instruction in ws:
-        logger.debug("Received instruction: %s", instruction)
-        match instruction:
-          case "get_clipboard":
-            await ws.send(pyperclip.paste())
-          case _:
-            logger.debug("Instruction not understood: %s", instruction)
-
+          await asyncio.get_event_loop().run_in_executor(
+              self.executor,
+              self.output_stream.write,
+              bytestring,
+          )
+        except KeyboardInterrupt:
+          self.output_stream.stop()
 
   async def communicate(self):
-    await asyncio.gather(
-        self.listen_forever(),
-        self.answer_forever(),
-        self.text_forever(),
-        self.execute_forever(),
-    )
+    async with websockets.connect(
+        self.wshub_uri,
+        logger=logger,
+        max_size=10**9,
+    ) as ws:
+      await ws.send("client")
+      await asyncio.gather(
+          self.listen_forever(ws),
+          # self.answer_forever(ws),
+          self.hear_forever(ws),
+          # self.text_forever(),
+          # self.execute_forever(),
+      )
 
   def run(self):
     asyncio.run(self.communicate())

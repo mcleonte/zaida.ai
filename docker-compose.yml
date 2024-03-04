@@ -14,9 +14,20 @@ services:
       - NLU_PORT
       - ACTIONS_PORT
     depends_on:
-      - stt
-      - nlu
-      - tts
+      - wshub
+    # - stt
+    # - nlu
+    # - tts
+
+  wshub:
+    build: ./docker/wshub/
+    image: mcleonte/zaida-wshub
+    container_name: zaida-wshub
+    expose:
+      - ${PORT_1}
+    environment:
+      - PORT_1
+      - LOG_LEVEL
 
   stt:
     build:
@@ -31,6 +42,7 @@ services:
     environment:
       - STT_PORT
       - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
+      - WSHUB_URI
       - LOG_LEVEL
       - ZAIDA_USER
       - MODEL_PATH=/app/models
@@ -44,6 +56,7 @@ services:
     depends_on:
       nlu:
         condition: service_healthy
+      - wshub
 
   tts:
     build:
@@ -66,6 +79,8 @@ services:
           devices:
             - capabilities: ["gpu"]
               count: 1
+    depends_on:
+      - wshub
 
   nlu:
     build: ./docker/nlu/

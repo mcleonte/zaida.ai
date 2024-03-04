@@ -5,8 +5,6 @@ Speech to text websocket server module
 import os
 import logging
 import asyncio
-import requests
-import json
 
 import websockets
 import numpy as np
@@ -34,37 +32,23 @@ model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH).to(DEVICE)
 logger.info("Model loaded.")
 
 
-def transcribe(audio):
+def process(audio):
   logger.info("Received audio chunk of size %s", len(audio))
   audio = np.frombuffer(audio, np.int16).flatten().astype(np.float32) / 32768.0
   result = model.transcribe(audio, fp16=FP16)
   logger.info("Result: '%s'", result)
   for i, segment in enumerate(result["segments"]):
     logger.info("Segment %s: '%s'", i, segment)
-  return result
-
-
-def send(text: str):
-  logger.debug("Sending text to %s: %s", NLU_URI, text)
-  requests.post(
-    NLU_URI,
-    json.dumps({
-      "message": text,
-      "sender": ZAIDA_USER,
-    }),
-    stream=True,
-    timeout=None,
-  )
-
-
-async def serve(websocket):
-  async for audio in websocket:
-    send(transcribe(audio)["text"])
+  return result["text"]
 
 
 async def main():
-  async with websockets.serve(serve, "0.0.0.0", STT_PORT, logger=logger):
-    await asyncio.Future()
+  async with websockets.connect(os.environ["WSHUB_URI"]) as ws:
+    # Send the identifier as the first message
+    await ws.send("stt")
+    while True:
+      data = await ws.recv()
+      await ws.send(process(data))
 
 
 asyncio.run(main())
