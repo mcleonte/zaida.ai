@@ -11,11 +11,6 @@ import numpy as np
 import torch
 import whisper
 
-ZAIDA_USER = os.environ["ZAIDA_USER"]
-
-STT_PORT = os.environ["STT_PORT"]
-NLU_URI = os.environ["NLU_URI"]
-
 MODEL_NAME = os.environ["MODEL_NAME"] or "small.en"
 MODEL_PATH = os.environ["MODEL_PATH"] or "/app/models/"
 
