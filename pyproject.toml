@@ -9,7 +9,7 @@ description = "Zaida AI assistant"
 repository = "https://github.com/mcleonte/zaida.ai"
 
 [tool.poetry.dependencies]
-python = "^3.8,<3.11"
+python = "^3.8.1,<3.11"
 sounddevice = "^0.4.5"
 websockets = "^10.4"
 pyperclip = "^1.8.2"
