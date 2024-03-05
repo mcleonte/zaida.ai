@@ -12,6 +12,6 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY serve.py .
+COPY app.py .
 
-CMD ["python", "serve.py"]
+CMD ["python", "app.py"]
