@@ -17,10 +17,11 @@ MODEL_PATH = os.environ["MODEL_PATH"] or "/app/models/"
 FP16 = torch.cuda.is_available()
 DEVICE = "cuda" if FP16 else "cpu"
 
-logging.basicConfig(format="%(asctime)s | %(message)s")
+logging.basicConfig(
+    format="%(asctime)s | %(message)s",
+    level=os.environ.get("LOG_LEVEL"),
+)
 logger = logging.getLogger("zaida.stt")
-logger.setLevel(os.environ["LOG_LEVEL"])
-logger.addHandler(logging.StreamHandler())
 
 logger.info("Loading model '%s'", MODEL_NAME)
 model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH).to(DEVICE)
