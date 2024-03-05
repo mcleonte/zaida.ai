@@ -59,8 +59,10 @@ class ZaidaClient:
     self.configure_input_stream(energy_threshold)
 
   def configure_input_stream(self, energy_threshold):
-
-    self.mic = sr.Microphone(sample_rate=16000)
+    for index, name in enumerate(sr.Microphone.list_microphone_names()):
+      if name == "pipewire":
+        self.mic = sr.Microphone(device_index=index, sample_rate=16000)
+        break
     self.rec = sr.Recognizer()
     self.rec.pause_threshold = .6
     self.queue = asyncio.Queue()
