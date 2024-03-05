@@ -11,6 +11,9 @@ from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
 import speech_recognition as sr
 import sounddevice as sd
+from dotenv import dotenv_values
+
+ENVS = dotenv_values()
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.client")
@@ -39,7 +42,7 @@ class ZaidaClient:
   def __init__(
       self,
       hostname="localhost",
-      port=8000,
+      port=ENVS["PORT_1"],
       energy_threshold=150,
       output_device="pipewire",
   ):
