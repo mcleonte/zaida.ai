@@ -23,9 +23,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("zaida.stt")
 
-logger.info("Loading model '%s'", MODEL_NAME)
+logger.debug("Loading model '%s'", MODEL_NAME)
 model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH).to(DEVICE)
-logger.info("Model loaded.")
+logger.debug("Model loaded.")
 
 
 def process(audio):
