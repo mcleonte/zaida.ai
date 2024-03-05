@@ -18,11 +18,6 @@ action_endpoint:
 # By default the conversations are stored in memory.
 # https://rasa.com/docs/rasa/tracker-stores
 
-tracker_store:
-  type: redis
-  url: redis
-  port: ${REDIS_PORT}
-  db: ${REDIS_DB}
 #    password: <password used for authentication>
 #    use_ssl: <whether or not the communication is encrypted, default false>
 
