@@ -15,9 +15,6 @@ services:
       - ACTIONS_PORT
     depends_on:
       - wshub
-    # - stt
-    # - nlu
-    # - tts
 
   wshub:
     build: ./docker/wshub/
@@ -35,12 +32,9 @@ services:
       dockerfile: ${DEVICE}.Dockerfile
     image: mcleonte/zaida-stt
     container_name: zaida-stt
-    expose:
-      - ${STT_PORT}
     volumes:
       - ./docker/stt/:/app/
     environment:
-      - STT_PORT
       - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
       - WSHUB_URI
       - LOG_LEVEL
@@ -70,7 +64,7 @@ services:
     volumes:
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
-      - TTS_PORT
+      - WSHUB_URI
       - LOG_LEVEL
     command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${TTS_NLU_PORT}
     deploy:
