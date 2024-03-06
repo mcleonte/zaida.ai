@@ -24,7 +24,6 @@ def process(text):
       },
       timeout=None,
   )
-  # logger.debug(response.content)  #text)
   return response.content  #text.encode("utf-8")
 
 
