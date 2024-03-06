@@ -16,6 +16,8 @@ services:
     build: ./docker/wshub/
     image: mcleonte/zaida-wshub
     container_name: zaida-wshub
+    volumes:
+      - ./docker/wshub/:/usr/src/app/
     expose:
       - ${PORT_1}
     environment:
@@ -55,6 +57,7 @@ services:
     image: mcleonte/zaida-tts
     container_name: zaida-tts
     volumes:
+      - ./docker/tts/:/app/
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
       - WSHUB_URI

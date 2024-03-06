@@ -34,6 +34,8 @@ RUN sed -i 's/onnxruntime/onnxruntime-gpu/' ./requirements.txt \
 RUN --mount=type=cache,id=pip-requirements,target=/root/.cache/pip \
     ./install.sh
 
+WORKDIR /app
+
 COPY run.sh app.py .
 
 ENTRYPOINT ["./run.sh"]
