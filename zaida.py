@@ -47,14 +47,8 @@ class ZaidaClient:
       output_device="pipewire",
   ):
 
-    # self.stt_uri = f"ws://{hostname}:{port}/stt"
-    # self.tts_uri = f"ws://{hostname}:{port}/tts"
-    # self.nlu_uri = f"http://{hostname}:{port}/nlu"
-    # self.actions_uri = f"ws://{hostname}:{port}/actions"
     self.wshub_uri = f"ws://{hostname}:{port}/"
-
     self.user = os.environ["USER"]
-
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
 
@@ -122,12 +116,10 @@ class ZaidaClient:
         self.stop_listening(wait_for_stop=False)
         break
 
-
   async def hear_forever(self, ws):
 
     self.output_stream.start()
     while True:
-      # bytestring = await self.out_queue.get()
       async for bytestring in ws:
         try:
           await asyncio.get_event_loop().run_in_executor(
@@ -147,10 +139,7 @@ class ZaidaClient:
       await ws.send("client")
       await asyncio.gather(
           self.listen_forever(ws),
-          # self.answer_forever(ws),
           self.hear_forever(ws),
-          # self.text_forever(),
-          # self.execute_forever(),
       )
 
   def run(self):
