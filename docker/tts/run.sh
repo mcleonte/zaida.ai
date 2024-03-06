@@ -7,5 +7,3 @@
   --port ${PORT_1} \
   --cuda & \
 wait
-
-
