@@ -54,15 +54,12 @@ services:
       dockerfile: ${DEVICE}.Dockerfile
     image: mcleonte/zaida-tts
     container_name: zaida-tts
-    expose:
-      - ${TTS_NLU_PORT}
-      - ${TTS_PORT}
     volumes:
       - mimic3_voices:/home/mimic3/.local/share/mycroft/mimic3/voices/
     environment:
       - WSHUB_URI
+      - PORT_1
       - LOG_LEVEL
-    command: --preload-voice en_US/vctk_low --voice en_US/vctk_low#p329 --debug --port ${TTS_NLU_PORT}
     deploy:
       resources:
         reservations:
