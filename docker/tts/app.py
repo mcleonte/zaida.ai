@@ -15,11 +15,11 @@ logger.addHandler(logging.StreamHandler())
 
 
 def process(text):
-  response = requests.get(
-      "http://localhost:59125/api/tts",
-      params={
+  response = requests.post(
+      f"http://localhost:{ os.environ['PORT_1'] }/api/tts",
+      json={
           "text": text,
-          "voice": "en_US/vctk_low#p329",
+          "voice": os.environ["VOICE"],
       },
   )
   # logger.debug(response.content)  #text)
