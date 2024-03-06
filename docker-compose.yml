@@ -60,6 +60,7 @@ services:
       - WSHUB_URI
       - PORT_1
       - LOG_LEVEL
+      - VOICE=en_US/vctk_low#p240
     deploy:
       resources:
         reservations:
