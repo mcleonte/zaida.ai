@@ -24,7 +24,7 @@ def process(text):
       },
       timeout=None,
   )
-  return response.content  #text.encode("utf-8")
+  return response.content
 
 
 async def main():
