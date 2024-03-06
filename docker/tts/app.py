@@ -29,7 +29,6 @@ def process(text):
 
 async def main():
   async with websockets.connect(os.environ["WSHUB_URI"]) as ws:
-    # Send the identifier as the first message
     await ws.send("tts")
     while True:
       data = await ws.recv()
