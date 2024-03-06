@@ -8,10 +8,11 @@ import asyncio
 import logging
 import websockets
 
-logging.basicConfig(format="%(asctime)s | %(message)s")
-logger = logging.getLogger("zaida.wshub")
-logger.setLevel(os.environ["LOG_LEVEL"])
-logger.addHandler(logging.StreamHandler())
+logging.basicConfig(
+    format="%(asctime)s | %(message)s",
+    level=os.environ.get("LOG_LEVEL"),
+)
+logger = logging.getLogger("zaida.tts")
 
 
 def process(text):
