@@ -22,6 +22,7 @@ def process(text):
           "text": text,
           "voice": os.environ["VOICE"],
       },
+      timeout=None,
   )
   # logger.debug(response.content)  #text)
   return response.content  #text.encode("utf-8")
