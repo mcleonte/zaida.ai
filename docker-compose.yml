@@ -131,4 +131,3 @@ volumes:
   actions_cache:
   mimic3_voices:
   spacy_models:
-  redis_data:
