@@ -52,11 +52,19 @@ class ZaidaClient:
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
 
-  def configure_input_stream(self, energy_threshold):
-    for index, name in enumerate(sr.Microphone.list_microphone_names()):
-      if name == "pipewire":
-        self.mic = sr.Microphone(device_index=index, sample_rate=16000)
-        break
+  def configure_input_stream(self, energy_threshold, interactive=False):
+    if interactive:
+      for index, name in enumerate(sr.Microphone.list_microphone_names()):
+        print(index, name)
+      index = int(input("Select input ID: "))
+      self.mic = sr.Microphone(device_index=index, sample_rate=16000)
+    else:
+      for index, name in enumerate(sr.Microphone.list_microphone_names()):
+        if name == "pipewire":
+          self.mic = sr.Microphone(device_index=index, sample_rate=16000)
+          break
+      else:
+        raise IOError("Could not find pipewire microphone")
     self.rec = sr.Recognizer()
     self.rec.pause_threshold = .6
     self.queue = asyncio.Queue()
