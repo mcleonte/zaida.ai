@@ -34,10 +34,8 @@ services:
     volumes:
       - ./docker/stt/:/app/
     environment:
-      - NLU_URI=http://nlu:${NLU_PORT}/webhooks/callback/webhook
       - WSHUB_URI
       - LOG_LEVEL
-      - ZAIDA_USER
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
