@@ -14,6 +14,7 @@ sounddevice = "^0.4.5"
 websockets = "^10.4"
 SpeechRecognition = "^3.10.0"
 PyAudio = "^0.2.13"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"

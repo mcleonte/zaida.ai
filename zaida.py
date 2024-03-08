@@ -17,7 +17,7 @@ ENVS = dotenv_values()
 
 logging.basicConfig(format="%(asctime)s | %(message)s")
 logger = logging.getLogger("zaida.client")
-logger.setLevel(logging.INFO)
+logger.setLevel(ENVS["LOG_LEVEL"])
 
 # Supress ALSA warnings and errors from terminal.
 # https://stackoverflow.com/questions/7088672#answer-13453192
