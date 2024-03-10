@@ -143,7 +143,6 @@ class ZaidaClient:
   async def communicate(self):
     async with websockets.connect(
         self.wshub_uri,
-        logger=logger,
         max_size=10**9,
     ) as ws:
       await ws.send("client")
