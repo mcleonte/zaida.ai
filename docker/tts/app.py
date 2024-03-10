@@ -30,13 +30,9 @@ def process(text):
 async def main():
   async with websockets.connect(os.environ["WSHUB_URI"]) as ws:
     await ws.send("tts")
-    sentence = []
     while True:
       data = await ws.recv()
-      sentence.append(data)
-      if data in ".?!":
-        await ws.send(process("".join(sentence).lower()))
-        sentence = []
+      await ws.send(process(data))
 
 
 asyncio.run(main())

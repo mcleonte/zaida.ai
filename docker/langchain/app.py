@@ -86,14 +86,22 @@ handler = StdOutCallbackHandler()
 
 async def process(text):
   logging.info("Received message: %s", text)
-  async for token in chain.astream_events(
+  sentence = []
+  async for event in chain.astream_events(
       text,
       version="v1",
       callbacks=[handler],
   ):
-    if token["event"] == "on_chat_model_stream":
-      logging.info("token: %s", token["data"]["chunk"])
-      yield token["data"]["chunk"]
+    if event["event"] != "on_chat_model_stream":
+      continue
+
+    token = event["data"]["chunk"]
+    sentence.append(token)
+    if token in ".?!":
+      yield "".join(sentence).lower()
+      sentence = []
+
+    logging.info("token: %s", token)
 
 
 async def main():
