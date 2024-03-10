@@ -1,0 +1,5 @@
+huggingface_hub
+langchain
+langchain-experimental
+langchain-core
+websockets

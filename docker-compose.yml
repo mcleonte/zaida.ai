@@ -25,6 +25,25 @@ services:
       - PORT_1
       - LOG_LEVEL
 
+  langchain:
+    build: ./docker/langchain
+    image: mcleonte/zaida-langchain
+    container_name: zaida-langchain
+    environment:
+      - LOGLEVEL
+      - WSHUB_URI
+      - SYSTEM_PROMPT
+    volumes:
+      - ~/.cache/huggingface/hub:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              count: 1
+    depends_on:
+      - wshub
+
   stt:
     build:
       context: ./docker/stt/
