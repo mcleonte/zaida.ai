@@ -23,7 +23,7 @@ services:
       - ${PORT_1}
     environment:
       - PORT_1
-      - LOG_LEVEL
+      - LOGLEVEL
 
   langchain:
     build: ./docker/langchain
@@ -54,7 +54,7 @@ services:
       - ./docker/stt/:/app/
     environment:
       - WSHUB_URI
-      - LOG_LEVEL
+      - LOGLEVEL
       - MODEL_PATH=/app/models
       - MODEL_NAME=small.en
     deploy:
@@ -80,7 +80,7 @@ services:
     environment:
       - WSHUB_URI
       - PORT_1
-      - LOG_LEVEL
+      - LOGLEVEL
       - VOICE=en_US/vctk_low#p240
     deploy:
       resources:

@@ -9,10 +9,10 @@ import logging
 import websockets
 
 logging.basicConfig(
-    format="%(asctime)s | %(message)s",
-    level=os.environ.get("LOG_LEVEL"),
+    level=os.environ.get("LOGLEVEL", logging.INFO),
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
-logger = logging.getLogger("zaida.tts")
 
 
 def process(text):

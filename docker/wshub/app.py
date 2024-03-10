@@ -15,25 +15,28 @@ routing_map = {
     "client": "stt",
     "stt": "langchain",
     "langchain": "tts",
-    # "stt": "tts",
     "tts": "client",
+
+    # "client": "stt",
+    # "stt": "tts",
+    # "tts": "client",
 }
 
 logging.basicConfig(
-    format="%(asctime)s | %(message)s",
-    level=os.environ.get("LOG_LEVEL"),
+    level=os.environ.get("LOGLEVEL", logging.INFO),
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
-logger = logging.getLogger("zaida.wshub")
 
 
 async def register(websocket, client_id):
   connected[client_id] = websocket
-  logger.info("Registered %s websocket connection", client_id)
+  logging.info("Registered %s websocket connection", client_id)
 
 
 async def unregister(client_id):
   connected.pop(client_id, None)
-  logger.info("Unregistered %s websocket connection", client_id)
+  logging.info("Unregistered %s websocket connection", client_id)
 
 
 async def route_message(sender_id, message):
@@ -42,7 +45,7 @@ async def route_message(sender_id, message):
 
   if target_id and target_id in connected:
     # Send the message to the target client
-    logger.info(
+    logging.info(
         "Sending from %s to %s payload of length %s",
         sender_id,
         target_id,

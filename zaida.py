@@ -15,9 +15,11 @@ from dotenv import dotenv_values
 
 ENVS = dotenv_values()
 
-logging.basicConfig(format="%(asctime)s | %(message)s")
-logger = logging.getLogger("zaida.client")
-logger.setLevel(ENVS["LOG_LEVEL"])
+logging.basicConfig(
+    level=os.environ.get("LOGLEVEL", logging.INFO),
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
 
 # Supress ALSA warnings and errors from terminal.
 # https://stackoverflow.com/questions/7088672#answer-13453192
@@ -99,27 +101,27 @@ class ZaidaClient:
 
   def calibrate(self, duration: float = 3.):
     with self.mic as source:
-      logger.info("Calibrating microphone...")
+      logging.info("Calibrating microphone...")
       self.rec.adjust_for_ambient_noise(source, duration=duration)
-      logger.info("Microphone calibrated to energy threshold of %s",
-                  self.rec.energy_threshold)
+      logging.info("Microphone calibrated to energy threshold of %s",
+                   self.rec.energy_threshold)
 
   async def listen_forever(self, ws):
 
     loop = asyncio.get_running_loop()
 
     def callback(recognizer: sr.Recognizer, audio: sr.AudioData):
-      logger.debug("Callback called, putting audio of size %s in queue",
-                   len(raw_data := audio.get_raw_data()))
+      logging.debug("Callback called, putting audio of size %s in queue",
+                    len(raw_data := audio.get_raw_data()))
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
     while True:
       self.stop_listening = self.rec.listen_in_background(self.mic, callback)
       try:
         while True:
-          logger.debug("Waiting for audio queue...")
+          logging.debug("Waiting for audio queue...")
           await ws.send(await self.queue.get())
-          logger.debug("Audio sent to server.")
+          logging.debug("Audio sent to server.")
       except KeyboardInterrupt:
         self.stop_listening(wait_for_stop=False)
         break

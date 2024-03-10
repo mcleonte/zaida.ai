@@ -18,23 +18,23 @@ FP16 = torch.cuda.is_available()
 DEVICE = "cuda" if FP16 else "cpu"
 
 logging.basicConfig(
-    format="%(asctime)s | %(message)s",
-    level=os.environ.get("LOG_LEVEL"),
+    level=os.environ.get("LOGLEVEL", logging.INFO),
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
-logger = logging.getLogger("zaida.stt")
 
-logger.debug("Loading model '%s'", MODEL_NAME)
+logging.debug("Loading model '%s'", MODEL_NAME)
 model = whisper.load_model(MODEL_NAME, download_root=MODEL_PATH).to(DEVICE)
-logger.debug("Model loaded.")
+logging.debug("Model loaded.")
 
 
 def process(audio):
-  logger.info("Received audio chunk of size %s", len(audio))
+  logging.info("Received audio chunk of size %s", len(audio))
   audio = np.frombuffer(audio, np.int16).flatten().astype(np.float32) / 32768.0
   result = model.transcribe(audio, fp16=FP16)
-  logger.info("Result: '%s'", result)
+  logging.info("Result: '%s'", result["text"])
   for i, segment in enumerate(result["segments"]):
-    logger.info("Segment %s: '%s'", i, segment)
+    logging.info("Segment %s: '%s'", i, segment["text"])
   return result["text"]
 
 
