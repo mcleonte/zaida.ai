@@ -64,8 +64,6 @@ services:
             - capabilities: ["gpu"]
               count: 1
     depends_on:
-      nlu:
-        condition: service_healthy
       - wshub
 
   tts:
