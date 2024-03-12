@@ -6,6 +6,9 @@ import os
 import asyncio
 import websockets
 import logging
+import wave
+from datetime import datetime
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
@@ -51,6 +54,7 @@ class ZaidaClient:
 
     self.wshub_uri = f"ws://{hostname}:{port}/"
     self.user = os.environ["USER"]
+    self.cache_dir = Path("./.cache_input_wavs")
     self.configure_output_stream(output_device)
     self.configure_input_stream(energy_threshold)
 
@@ -106,6 +110,42 @@ class ZaidaClient:
       logging.info("Microphone calibrated to energy threshold of %s",
                    self.rec.energy_threshold)
 
+  def cache_input_wav(
+      self,
+      raw_wav: str,
+      sample_rate,
+      sample_width,
+      n_channels=1,
+  ) -> None:
+    files = os.listdir(self.cache_dir)
+    if files:
+      latest_id = sorted(files)[-1].split("_")[0]
+      newest_id = str(int(latest_id) + 1).zfill(3)
+    else:
+      newest_id = "000"
+    file = f"{newest_id}_{datetime.now().strftime('%F_%H:%M:%S.%f')}.wav"
+    with wave.open(str(self.cache_dir / file), mode="wb") as f:
+      f.setframerate(sample_rate)
+      f.setsampwidth(sample_width)
+      f.setnchannels(n_channels)
+      f.writeframes(raw_wav)
+
+  def get_cache_input_wav(
+      self,
+      wav_id: str,
+  ) -> str:
+    files = os.listdir(self.cache_dir)
+    if not files:
+      raise FileNotFoundError("No cache files found")
+    for file in files:
+      if file.startswith(wav_id):
+        break
+    else:
+      raise FileNotFoundError(f"Specified wav_id not found: {wav_id}.")
+    with open(self.cache_dir / file, "rb") as f:
+      wav = f.read()
+    return wav
+
   async def listen_forever(self, ws):
 
     loop = asyncio.get_running_loop()
@@ -115,8 +155,19 @@ class ZaidaClient:
                     len(raw_data := audio.get_raw_data()))
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
+      if os.environ.get("CACHE_WAV", "").lower() in ["true", "1", "yes"]:
+        self.cache_input_wav(
+            raw_data,
+            sample_rate=16000,
+            sample_width=2,
+            n_channels=1,
+        )
+
     while True:
       self.stop_listening = self.rec.listen_in_background(self.mic, callback)
+      if wav_id := os.environ.get("USE_CACHE_WAV_ID", ""):
+        wav = self.get_cache_input_wav(wav_id)
+        self.queue.put_nowait(wav)
       try:
         while True:
           logging.debug("Waiting for audio queue...")
