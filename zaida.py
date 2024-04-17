@@ -2,18 +2,18 @@
 Zaida AI client entrypoint
 """
 
-import os
 import asyncio
-import websockets
 import logging
+import os
 import wave
+from concurrent.futures import ThreadPoolExecutor
+from ctypes import CFUNCTYPE, c_char_p, c_int, cdll
 from datetime import datetime
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
-from ctypes import CFUNCTYPE, cdll, c_int, c_char_p
 
-import speech_recognition as sr
 import sounddevice as sd
+import speech_recognition as sr
+import websockets
 from dotenv import dotenv_values
 
 ENVS = dotenv_values()
