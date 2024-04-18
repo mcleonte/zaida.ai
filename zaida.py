@@ -63,11 +63,11 @@ class ZaidaClient:
       for index, name in enumerate(sr.Microphone.list_microphone_names()):
         print(index, name)
       index = int(input("Select input ID: "))
-      self.mic = sr.Microphone(device_index=index, sample_rate=16000)
+      self.mic = sr.Microphone(device_index=index)
     else:
       for index, name in enumerate(sr.Microphone.list_microphone_names()):
         if name == "pipewire":
-          self.mic = sr.Microphone(device_index=index, sample_rate=16000)
+          self.mic = sr.Microphone(device_index=index)
           break
       else:
         raise IOError("Could not find pipewire microphone")
@@ -151,8 +151,15 @@ class ZaidaClient:
     loop = asyncio.get_running_loop()
 
     def callback(recognizer: sr.Recognizer, audio: sr.AudioData):
-      logging.debug("Callback called, putting audio of size %s in queue",
-                    len(raw_data := audio.get_raw_data()))
+      logging.debug(
+          "Callback called, putting audio of size %s in queue",
+          len(raw_data := audio.get_raw_data(
+              # ideal values for whisper
+              convert_rate=16000,
+              convert_width=2,
+          )),
+      )
+
       loop.call_soon_threadsafe(self.queue.put_nowait, raw_data)
 
       if os.environ.get("CACHE_WAV", "").lower() in ["true", "1", "yes"]:
